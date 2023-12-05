@@ -4,10 +4,12 @@ import { user } from 'src/entities';
 import { Repository } from 'typeorm';
 import { SignUpUserDto } from './dto/signup.user.dto';
 import * as bcrypt from 'bcrypt';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private usersService: UsersService,
     @InjectRepository(user) private readonly userRepository: Repository<user>,
   ) {}
 
@@ -28,5 +30,14 @@ export class AuthService {
       password: hashedpass,
     });
     return this.userRepository.save(newUser);
+  }
+
+  async validateUser(username: string, password: string): Promise<any> {
+    const user = await this.usersService.findOne(username);
+    if (user && await bcrypt.compare(password,user.password)) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
   }
 }

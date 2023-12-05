@@ -1,4 +1,4 @@
-import { user } from './user.auth.entity';
+import { user } from "./user.entity";
 
 const entities = [user];
 
