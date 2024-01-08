@@ -2,8 +2,9 @@ import { Body, Controller, Get, HttpCode, Post, Request, UseGuards } from '@nest
 import { AuthService } from './auth.service';
 import { SignUpUserDto } from './dto/signup.user.dto';
 import { user_clients, user_restaurant } from 'src/entities';
-import { LocalAuthGuard } from './local/local.guard';
 import { JwtAuthGuard } from './jwt/jwt.guard';
+import { LocalUserAuthGuard } from './local/local-user.guard';
+import { LocalManagerAuthGuard } from './local/local-manager.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,11 +22,17 @@ export class AuthController {
     return this.authservice.signupManager(signupDto);
   }
 
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(LocalUserAuthGuard)
   @HttpCode(200)
   @Post('signin/user')
   async login(@Request() req) {
     return this.authservice.loginUser(req.user)
+  }
+
+  @UseGuards(LocalManagerAuthGuard)
+  @Post('signin/manager')
+  async loginManager(@Request() req) {
+    return this.authservice.loginManager(req.user);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -56,8 +56,17 @@ export class AuthService {
     return this.managerRepository.save(newUser);
   }
 
-  async validate(username: string, password: string): Promise<any> {
+  async validateUser(username: string, password: string): Promise<any> {
     const user = await this.usersService.findOne(username);
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  async validateManager(username: string, password: string): Promise<any> {
+    const user = await this.managersService.findOne(username);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
       return result;
@@ -71,6 +80,15 @@ export class AuthService {
 
     return {
       AccessToken,
+    };
+  }
+
+  async loginManager(manager: user_restaurant) {
+    const payload = { username: manager.username, id: manager.id };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
     };
   }
 }
