@@ -6,16 +6,16 @@ import { SignUpUserDto } from './dto/signup.user.dto';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { ManagersService } from 'src/managers/managers.service';
+import { UserRestaurantsService } from 'src/user_restaurants/user_restaurants.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private managersService: ManagersService,
+    private restaurantService: UserRestaurantsService,
     private jwtService: JwtService,
     @InjectRepository(user_clients) private readonly userRepository: Repository<user_clients>,
-    @InjectRepository(user_restaurant) private readonly managerRepository: Repository<user_restaurant>
+    @InjectRepository(user_restaurant) private  emplyeeRepository: Repository<user_restaurant>
   ) {}
 
   async signupUser(signupDto: SignUpUserDto): Promise<user_clients> {
@@ -37,9 +37,9 @@ export class AuthService {
     return this.userRepository.save(newUser);
   }
 
-  async signupManager(signupDto: SignUpUserDto): Promise<user_restaurant> {
+  async signupRestaurant(signupDto: SignUpUserDto): Promise<user_restaurant> {
     const { email, username, password } = signupDto;
-    const existingUser = await this.managerRepository.findOne({
+    const existingUser = await this.emplyeeRepository.findOne({
       where: [{ username }, { email }],
     });
     if (existingUser) {
@@ -48,12 +48,12 @@ export class AuthService {
     const salt = bcrypt.genSaltSync(10);
     const hashedpass = await bcrypt.hashSync(password, salt);
 
-    const newUser = this.managerRepository.create({
+    const newUser = this.emplyeeRepository.create({
       email,
       username,
       password: hashedpass,
     });
-    return this.managerRepository.save(newUser);
+    return this.emplyeeRepository.save(newUser);
   }
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -65,8 +65,8 @@ export class AuthService {
     return null;
   }
 
-  async validateManager(username: string, password: string): Promise<any> {
-    const user = await this.managersService.findOne(username);
+  async validateRestaurant(username: string, password: string): Promise<any> {
+    const user = await this.restaurantService.findOne(username);
     if (user && (await bcrypt.compare(password, user.password))) {
       const { password, ...result } = user;
       return result;
@@ -82,8 +82,8 @@ export class AuthService {
     }
 }
 
-  async loginManager(manager: user_restaurant) {
-    const payload = { username: manager.username, id: manager.id };
+  async loginRestaurant(employee: user_restaurant) {
+    const payload = { username: employee.username, id: employee.id };
     const accessToken = this.jwtService.sign(payload);
 
     return {

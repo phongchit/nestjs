@@ -4,13 +4,14 @@ import { user_restaurant } from 'src/entities';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class ManagersService {
+export class UserRestaurantsService {
     constructor(
-        @InjectRepository(user_restaurant) private readonly managerRepository: Repository<user_restaurant>,
+        @InjectRepository(user_restaurant) private employeeRepository: Repository<user_restaurant>,
       ) {}
     
       async findOne(username: string): Promise<user_restaurant | undefined> {
-        const user = await this.managerRepository.findOne({ where: { username } });
+        const user = await this.employeeRepository.findOne({ where: { username } });
         return user;
       }
 }
+

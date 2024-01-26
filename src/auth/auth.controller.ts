@@ -4,7 +4,7 @@ import { SignUpUserDto } from './dto/signup.user.dto';
 import { user_clients, user_restaurant } from 'src/entities';
 import { JwtAuthGuard } from './jwt/jwt.guard';
 import { LocalUserAuthGuard } from './local/local-user.guard';
-import { LocalManagerAuthGuard } from './local/local-manager.guard';
+import { LocalRestaurantAuthGuard } from './local/local-restaurant.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -16,10 +16,10 @@ export class AuthController {
     return this.authservice.signupUser(signupDto);
   }
 
-  @Post('signup/manager')
+  @Post('signup/restaurant')
   @HttpCode(200)
-  async signupManger(@Body() signupDto: SignUpUserDto): Promise<user_restaurant> {
-    return this.authservice.signupManager(signupDto);
+  async signupRestaurant(@Body() signupDto: SignUpUserDto): Promise<user_restaurant> {
+    return this.authservice.signupRestaurant(signupDto);
   }
 
   @UseGuards(LocalUserAuthGuard)
@@ -29,10 +29,10 @@ export class AuthController {
     return this.authservice.loginUser(req.user)
   }
 
-  @UseGuards(LocalManagerAuthGuard)
-  @Post('signin/manager')
-  async loginManager(@Request() req) {
-    return this.authservice.loginManager(req.user);
+  @UseGuards(LocalRestaurantAuthGuard)
+  @Post('signin/restaurant')
+  async loginRestaurant(@Request() req) {
+    return this.authservice.loginRestaurant(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
