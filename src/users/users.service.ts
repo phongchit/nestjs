@@ -22,7 +22,7 @@ export class UsersService {
     return user;
   }
 
-  async createTask(
+  async createProfile(
     createprofiledto: createProfileDto,
     user: user_clients,
   ): Promise<profile> {
@@ -39,9 +39,7 @@ export class UsersService {
       await this.profileRepository.save(profile);
       return profile;
     } catch (e) {
-      throw new ConflictException({
-        message: ['Somethings wrong I can feel it.'],
-      });
+      throw new ConflictException();
     }
   }
 
@@ -92,19 +90,17 @@ export class UsersService {
       await this.profileRepository.save(profile);
       return profile;
     } catch (e) {
-      throw new NotFoundException({
-        message: ['Profile not found.'],
-      });
+      throw new NotFoundException();
     }
   }
 
   async deleteProfile(id: string, user: user_clients) {
     try {
-        const profile = await this.getProfileById(id, user)
-        await this.profileRepository.delete(id)
-        return profile
-    } catch(error) {
-        throw new NotFoundException()
+      const profile = await this.getProfileById(id, user);
+      await this.profileRepository.delete(id);
+      return profile;
+    } catch (error) {
+      throw new NotFoundException();
     }
-}
+  }
 }

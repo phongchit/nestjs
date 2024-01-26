@@ -15,7 +15,7 @@ export class UsersController {
         @Body() createprofiledto:createProfileDto ,
         @Request() { user }: any,
     ): Promise<profile> {
-        return this.userservice.createTask(createprofiledto, user)
+        return this.userservice.createProfile(createprofiledto, user)
     }
 
     @UseGuards(JwtAuthGuard)

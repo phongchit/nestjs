@@ -8,6 +8,6 @@ import { user_restaurant } from 'src/entities';
   imports: [TypeOrmModule.forFeature([user_restaurant])],
   exports: [UserRestaurantsService],
   providers: [UserRestaurantsService],
-  controllers: [UserRestaurantsController]
+  controllers: [UserRestaurantsController],
 })
 export class UserRestaurantsModule {}
