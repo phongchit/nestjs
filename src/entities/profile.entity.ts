@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -14,15 +15,11 @@ export class profile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToOne(() => user_clients)
-  @JoinColumn()
-  user: user_clients;
-
-  @Column({ unique: true })
+  @Column()
   first_name: string;
 
-  @Column({ unique: true })
-  lastname: string;
+  @Column()
+  last_name: string;
 
   @Column()
   phone_number: string;
@@ -32,4 +29,8 @@ export class profile {
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
+
+  @OneToOne(()=> user_clients)
+  @JoinColumn()
+  user:user_clients
 }

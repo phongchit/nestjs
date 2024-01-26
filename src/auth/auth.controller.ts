@@ -12,13 +12,13 @@ export class AuthController {
 
   @Post('signup/user')
   @HttpCode(200)
-  signupUser(@Body() signupDto: SignUpUserDto): Promise<user_clients> {
+  async signupUser(@Body() signupDto: SignUpUserDto): Promise<user_clients> {
     return this.authservice.signupUser(signupDto);
   }
 
   @Post('signup/manager')
   @HttpCode(200)
-  signupManger(@Body() signupDto: SignUpUserDto): Promise<user_restaurant> {
+  async signupManger(@Body() signupDto: SignUpUserDto): Promise<user_restaurant> {
     return this.authservice.signupManager(signupDto);
   }
 
@@ -37,7 +37,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req) {
+  async getProfile(@Request() req) {
     return req.user;
   }
 }

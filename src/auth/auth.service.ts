@@ -74,14 +74,13 @@ export class AuthService {
     return null;
   }
 
-  async loginUser(user: user_clients) {
-    const payload = { username: user.username, id: user.id };
-    const AccessToken = this.jwtService.sign(payload);
+  async loginUser(user: any): Promise<any> {
+    const payload = { username: user.username, sub: user.id }
 
     return {
-      AccessToken,
-    };
-  }
+        accessToken: this.jwtService.sign(payload)
+    }
+}
 
   async loginManager(manager: user_restaurant) {
     const payload = { username: manager.username, id: manager.id };
