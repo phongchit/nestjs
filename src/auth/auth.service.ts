@@ -15,7 +15,7 @@ export class AuthService {
     private restaurantService: UserRestaurantsService,
     private jwtService: JwtService,
     @InjectRepository(user_clients) private readonly userRepository: Repository<user_clients>,
-    @InjectRepository(user_restaurant) private  emplyeeRepository: Repository<user_restaurant>
+    @InjectRepository(user_restaurant) private  adminRepository: Repository<user_restaurant>
   ) {}
 
   async signupUser(signupDto: SignUpUserDto): Promise<user_clients> {
@@ -39,7 +39,7 @@ export class AuthService {
 
   async signupRestaurant(signupDto: SignUpUserDto): Promise<user_restaurant> {
     const { email, username, password } = signupDto;
-    const existingUser = await this.emplyeeRepository.findOne({
+    const existingUser = await this.adminRepository.findOne({
       where: [{ username }, { email }],
     });
     if (existingUser) {
@@ -48,12 +48,12 @@ export class AuthService {
     const salt = bcrypt.genSaltSync(10);
     const hashedpass = await bcrypt.hashSync(password, salt);
 
-    const newUser = this.emplyeeRepository.create({
+    const newUser = this.adminRepository.create({
       email,
       username,
       password: hashedpass,
     });
-    return this.emplyeeRepository.save(newUser);
+    return this.adminRepository.save(newUser);
   }
 
   async validateUser(username: string, password: string): Promise<any> {
@@ -82,12 +82,11 @@ export class AuthService {
     }
 }
 
-  async loginRestaurant(employee: user_restaurant) {
-    const payload = { username: employee.username, id: employee.id };
-    const accessToken = this.jwtService.sign(payload);
+  async loginRestaurant(admin: any): Promise<any> {
+    const payload = { username: admin.username, sub: admin.id };
 
     return {
-      accessToken,
-    };
+      accessToken: this.jwtService.sign(payload)
+  }
   }
 }

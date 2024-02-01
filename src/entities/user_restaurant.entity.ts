@@ -28,6 +28,6 @@ export class user_restaurant {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @ManyToOne(() => restaurant, (restaurant) => restaurant.managers)
-  managedRestaurant: restaurant;
+  @ManyToOne(() => restaurant, (restaurant) => restaurant.admins)
+  adminRestaurant: restaurant;
 }

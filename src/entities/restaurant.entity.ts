@@ -17,8 +17,8 @@ export class restaurant {
   @OneToMany(() => table, (table) => table.restaurant)
   tables: table[];
 
-  @OneToMany(() => user_restaurant, (userRestaurant) => userRestaurant.managedRestaurant)
-  managers: user_restaurant[];
+  @OneToMany(() => user_restaurant, (userRestaurant) => userRestaurant.adminRestaurant)
+  admins: user_restaurant[];
 
   @Column()
   rest_name: string;

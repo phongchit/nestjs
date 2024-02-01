@@ -38,7 +38,7 @@ export class UsersService {
     try {
       await this.profileRepository.save(profile);
       return profile;
-    } catch (e) {
+    } catch (error) {
       throw new ConflictException();
     }
   }
@@ -89,7 +89,7 @@ export class UsersService {
 
       await this.profileRepository.save(profile);
       return profile;
-    } catch (e) {
+    } catch (error) {
       throw new NotFoundException();
     }
   }

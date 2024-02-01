@@ -2,14 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { reservation } from './reservation.entity';
-import { profile } from './profile.entity';
 
 @Entity()
 export class user_clients {
