@@ -17,10 +17,13 @@ export class table {
   id: string;
 
   @Column()
-  table_capacity: number;
+  table_number: string;
 
   @Column()
-  table_describe: number;
+  table_capacity: string;
+
+  @Column()
+  table_describe: string;
 
   @ManyToOne(() => zone_table, (zone_table) => zone_table.tables)
   zone: zone_table;

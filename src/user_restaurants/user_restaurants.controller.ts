@@ -1,11 +1,12 @@
-import { Body, Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Request, Param, Get } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
-import { restaurant, zone_table } from 'src/entities';
+import { restaurant, table, zone_table } from 'src/entities';
 import { CreateZoneDto } from './dto/create.zone.dto';
+import { CreateTableDto } from './dto/create.table.dto';
 
-@Controller('user-restaurants')
+@Controller('restaurants')
 export class UserRestaurantsController {
   constructor(private userRestaurantsService: UserRestaurantsService) {}
 
@@ -33,5 +34,21 @@ export class UserRestaurantsController {
       createZoneDto,
       req,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('zones/:zoneId/create-table')
+  async createTable(
+    @Param('zoneId') zoneId: string,
+    @Body() createTableDto: CreateTableDto,
+    @Request() req: any,
+  ) {
+    return this.userRestaurantsService.createTable(zoneId, createTableDto, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('zones')
+  async getZonesForAdmin(@Request() req: any) {
+    return this.userRestaurantsService.getZonesForAdmin(req.user.id);
   }
 }

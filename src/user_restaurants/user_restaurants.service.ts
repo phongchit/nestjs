@@ -1,15 +1,18 @@
 import {
+  Body,
   ConflictException,
   Injectable,
   NotFoundException,
+  Param,
   Request,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { restaurant, user_restaurant, zone_table } from 'src/entities';
+import { restaurant, table, user_restaurant, zone_table } from 'src/entities';
 import { Repository } from 'typeorm';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
 import { CreateZoneDto } from './dto/create.zone.dto';
+import { CreateTableDto } from './dto/create.table.dto';
 
 @Injectable()
 export class UserRestaurantsService {
@@ -20,6 +23,8 @@ export class UserRestaurantsService {
     private restaurantRepository: Repository<restaurant>,
     @InjectRepository(zone_table)
     private zoneRepository: Repository<zone_table>,
+    @InjectRepository(table)
+    private tableRepository: Repository<table>,
   ) {}
 
   async findOne(username: string): Promise<user_restaurant | undefined> {
@@ -127,6 +132,81 @@ export class UserRestaurantsService {
     } catch (error) {
       console.error('Error when creating zone:', error);
       throw new ConflictException('Error when creating zone');
+    }
+  }
+
+  async createTable(
+    @Param('zoneId') zoneId: string,
+    @Body() createTableDto: CreateTableDto,
+    @Request() req
+  ): Promise<table> {
+    const { table_capacity, table_describe, table_number } = createTableDto;
+  
+    // Check if req.user or req.user.id is undefined
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('User information not found in the request.');
+    }
+  
+    try {
+      // Find the user by ID, including the associated restaurant
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!user) {
+        throw new NotFoundException('User not found.');
+      }
+  
+      // Access the associated restaurant from the user
+      const restaurant = user.adminRestaurant;
+  
+      // Check if the user has an associated restaurant
+      if (!restaurant) {
+        throw new NotFoundException('User has no associated restaurant.');
+      }
+  
+      // Check if the provided zoneId exists
+      const selectedZone = await this.zoneRepository.findOne({
+        where: { restaurant },
+      });
+  
+      if (!selectedZone) {
+        throw new NotFoundException('Zone not found.');
+      }
+  
+      // Now, you can use the selectedZone to create the table
+      const newTable = this.tableRepository.create({
+        table_capacity,
+        table_describe,
+        table_number,
+        zone: selectedZone, // Assign the zone to the table
+      });
+  
+      return await this.tableRepository.save(newTable);
+    } catch (error) {
+      console.error('Error when creating table:', error);
+      throw new ConflictException('Error when creating table');
+    }
+  }
+  async getZonesForAdmin(userId: string): Promise<zone_table[]> {
+    try {
+      const user = await this.adminRepository.findOne({
+        where: { id: userId },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!user || !user.adminRestaurant) {
+        throw new UnauthorizedException('User or associated restaurant not found.');
+      }
+
+      const restaurantId = user.adminRestaurant.id;
+      const zones = await this.zoneRepository.find({ where: { restaurant: { id: restaurantId } } });
+
+      return zones;
+    } catch (error) {
+      console.error('Error when getting zones for admin:', error);
+      throw new UnauthorizedException('Error when getting zones for admin');
     }
   }
   
