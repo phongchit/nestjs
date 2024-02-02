@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { restaurant } from './restaurant.entity';
 import { reservation } from './reservation.entity';
+import { zone_table } from './zone_table.entity';
 
 @Entity()
 export class table {
@@ -18,8 +19,11 @@ export class table {
   @Column()
   table_capacity: number;
 
-  @ManyToOne(() => restaurant, (rest) => rest.tables)
-  restaurant: restaurant;
+  @Column()
+  table_describe: number;
+
+  @ManyToOne(() => zone_table, (zone_table) => zone_table.tables)
+  zone: zone_table;
 
   @OneToMany(() => reservation, (reservation) => reservation.table)
   reservations: reservation[];

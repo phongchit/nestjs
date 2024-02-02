@@ -8,14 +8,18 @@ import {
 } from 'typeorm';
 import { table } from './table.entity';
 import { user_restaurant } from './user_restaurant.entity';
+import { zone_table } from './zone_table.entity';
 
 @Entity()
 export class restaurant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToMany(() => table, (table) => table.restaurant)
-  tables: table[];
+  // @OneToMany(() => table, (table) => table.restaurant)
+  // tables: table[];
+
+  @OneToMany(() => zone_table, (zone_table) => zone_table.restaurant)
+  zones: zone_table[];
 
   @OneToMany(() => user_restaurant, (userRestaurant) => userRestaurant.adminRestaurant)
   admins: user_restaurant[];
