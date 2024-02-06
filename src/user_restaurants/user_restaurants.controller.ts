@@ -37,18 +37,18 @@ export class UserRestaurantsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('zones/:zoneId/create-table')
-  async createTable(
-    @Param('zoneId') zoneId: string,
-    @Body() createTableDto: CreateTableDto,
-    @Request() req: any,
-  ) {
-    return this.userRestaurantsService.createTable(zoneId, createTableDto, req);
+  @Get('zones')
+  async getZonesForAdmin(@Request() req: any) {
+    return this.userRestaurantsService.getZones(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('zones')
-  async getZonesForAdmin(@Request() req: any) {
-    return this.userRestaurantsService.getZonesForAdmin(req.user.id);
+  @Post(':zoneId/create-table') // <-- Include zoneId in the route
+  async createTable(
+    @Body() createTableDto: CreateTableDto,
+    @Request() req,
+    @Param('zoneId') zoneId: string, // <-- Retrieve zoneId from route parameters
+  ): Promise<table> {
+    return this.userRestaurantsService.createTable(createTableDto, req, zoneId);
   }
 }

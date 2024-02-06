@@ -24,7 +24,7 @@ export class UsersService {
 
   async createProfile(
     createprofiledto: createProfileDto,
-    user: user_clients,
+    req: any,
   ): Promise<profile> {
     const { first_name, last_name, phone_number } = createprofiledto;
 
@@ -32,7 +32,7 @@ export class UsersService {
       first_name,
       last_name,
       phone_number,
-      user,
+      user:req.user,
     });
 
     try {
@@ -43,10 +43,10 @@ export class UsersService {
     }
   }
 
-  async getProfile(user: user_clients): Promise<profile> {
+  async getProfile(req:user_clients): Promise<profile> {
     try {
       const profile = await this.profileRepository.findOne({
-        where: { user },
+        where: { id:req.id },
       });
       return profile;
     } catch (error) {

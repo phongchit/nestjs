@@ -2,7 +2,7 @@ import { Body, Controller, Post, UseGuards,Request, Patch, Param, Delete, Get } 
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { createProfileDto } from './dto/create.profile.dto';
-import { profile } from 'src/entities';
+import { profile, user_clients } from 'src/entities';
 import { updateProfileDto } from './dto/update.profile.dto';
 
 @Controller('users')
@@ -13,17 +13,17 @@ export class UsersController {
     @Post('profile')
     async createProfile(
         @Body() createprofiledto:createProfileDto ,
-        @Request() { user }: any,
+        @Request() req: any,
     ): Promise<profile> {
-        return this.userservice.createProfile(createprofiledto, user)
+        return this.userservice.createProfile(createprofiledto, req)
     }
 
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     getProfile(
-        @Request() { user }: any,
+        @Request() req: any,
     ): Promise<profile> {
-        return this.userservice.getProfile(user)
+        return this.userservice.getProfile(req)
     }
 
     @UseGuards(JwtAuthGuard)

@@ -1,9 +1,8 @@
 import {
-  Body,
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
-  Param,
   Request,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -46,14 +45,21 @@ export class UserRestaurantsService {
     const { rest_name, rest_description, rest_phone_number } =
       createRestaurantDto;
 
-    // Check if req.user or req.user.id is undefined
     if (!req.user || !req.user.id) {
       throw new UnauthorizedException(
         'User information not found in the request.',
       );
     }
 
-    // Check if the restaurant name is unique
+    const user = await this.adminRepository.findOne({
+      where: { id: req.user.id },
+      relations: ['adminRestaurant'],
+    });
+
+    if (user.adminRestaurant) {
+      throw new BadRequestException('User must have 1 Restaurant.');
+    }
+
     const existingRestaurant = await this.restaurantRepository.findOne({
       where: { rest_name },
     });
@@ -68,14 +74,12 @@ export class UserRestaurantsService {
       rest_name,
       rest_description,
       rest_phone_number,
-      admins: [],
     });
 
     try {
       const createdRestaurant =
         await this.restaurantRepository.save(newRestaurant);
 
-      // Update adminRestaurant property of the admin user with the new restaurant ID
       const admin = await this.adminRepository.findOne({
         where: { id: req.user.id },
       });
@@ -97,13 +101,11 @@ export class UserRestaurantsService {
   async createZone(createZoneDto: CreateZoneDto, @Request() req): Promise<zone_table> {
     const { zone_name, zone_descripe } = createZoneDto;
   
-    // Check if req.user or req.user.id is undefined
     if (!req.user || !req.user.id) {
       throw new UnauthorizedException('User information not found in the request.');
     }
   
     try {
-      // Find the user by ID, including the associated restaurant
       const user = await this.adminRepository.findOne({
         where: { id: req.user.id },
         relations: ['adminRestaurant'],
@@ -113,19 +115,18 @@ export class UserRestaurantsService {
         throw new NotFoundException('User not found.');
       }
   
-      // Access the associated restaurant from the user
       const restaurant = user.adminRestaurant;
+
+      console.log(restaurant)
   
-      // Check if the user has an associated restaurant
       if (!restaurant) {
         throw new NotFoundException('User has no associated restaurant.');
       }
   
-      // Now, you can use the restaurant ID to create the zone
       const newZone = this.zoneRepository.create({
         zone_name,
         zone_descripe,
-        restaurant, // Assign the restaurant to the zone
+        restaurant,
       });
   
       return await this.zoneRepository.save(newZone);
@@ -135,61 +136,7 @@ export class UserRestaurantsService {
     }
   }
 
-  async createTable(
-    @Param('zoneId') zoneId: string,
-    @Body() createTableDto: CreateTableDto,
-    @Request() req
-  ): Promise<table> {
-    const { table_capacity, table_describe, table_number } = createTableDto;
-  
-    // Check if req.user or req.user.id is undefined
-    if (!req.user || !req.user.id) {
-      throw new UnauthorizedException('User information not found in the request.');
-    }
-  
-    try {
-      // Find the user by ID, including the associated restaurant
-      const user = await this.adminRepository.findOne({
-        where: { id: req.user.id },
-        relations: ['adminRestaurant'],
-      });
-  
-      if (!user) {
-        throw new NotFoundException('User not found.');
-      }
-  
-      // Access the associated restaurant from the user
-      const restaurant = user.adminRestaurant;
-  
-      // Check if the user has an associated restaurant
-      if (!restaurant) {
-        throw new NotFoundException('User has no associated restaurant.');
-      }
-  
-      // Check if the provided zoneId exists
-      const selectedZone = await this.zoneRepository.findOne({
-        where: { restaurant },
-      });
-  
-      if (!selectedZone) {
-        throw new NotFoundException('Zone not found.');
-      }
-  
-      // Now, you can use the selectedZone to create the table
-      const newTable = this.tableRepository.create({
-        table_capacity,
-        table_describe,
-        table_number,
-        zone: selectedZone, // Assign the zone to the table
-      });
-  
-      return await this.tableRepository.save(newTable);
-    } catch (error) {
-      console.error('Error when creating table:', error);
-      throw new ConflictException('Error when creating table');
-    }
-  }
-  async getZonesForAdmin(userId: string): Promise<zone_table[]> {
+  async getZones(userId: string): Promise<zone_table[]> {
     try {
       const user = await this.adminRepository.findOne({
         where: { id: userId },
@@ -208,6 +155,45 @@ export class UserRestaurantsService {
       console.error('Error when getting zones for admin:', error);
       throw new UnauthorizedException('Error when getting zones for admin');
     }
+  }  
+
+  async createTable(createTableDto: CreateTableDto, @Request() req, zoneId: string): Promise<table> {
+    const { table_number, table_capacity, table_describe } = createTableDto;
+
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('User information not found in the request.');
+    }
+
+    try {
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!user || !user.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+
+      const restaurant = user.adminRestaurant;
+      const zone = await this.zoneRepository.findOne({
+        where: { id: zoneId, restaurant: { id: restaurant.id } },
+      });
+
+      if (!zone) {
+        throw new NotFoundException('Zone not found.');
+      }
+
+      const newTable = this.tableRepository.create({
+        table_number,
+        table_capacity,
+        table_describe,
+        zone,
+      });
+
+      return await this.tableRepository.save(newTable);
+    } catch (error) {
+      console.error('Error when creating table:', error);
+      throw new ConflictException('Error when creating table');
+    }
   }
-  
 }
