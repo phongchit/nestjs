@@ -325,4 +325,46 @@ export class UserRestaurantsService {
       throw new NotFoundException('Error when getting tables for zone');
     }
   }
+  
+  async addAdminToRestaurant(username: string, req: any): Promise<user_restaurant> {
+    try {
+      const currentUserId = req.user.id;
+
+      // Find the current user who is the admin of the restaurant
+      const currentUser = await this.adminRepository.findOne({
+        where: { id: currentUserId },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!currentUser || !currentUser.adminRestaurant) {
+        throw new UnauthorizedException('User or associated restaurant not found.');
+      }
+
+      // Find the user to be added as admin
+      const userToAdd = await this.adminRepository.findOne({
+        where: { username },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!userToAdd) {
+        throw new NotFoundException('User to be added not found.');
+      }
+
+      // Check if the user is already an admin for another restaurant
+      if (userToAdd.adminRestaurant && userToAdd.adminRestaurant.id !== currentUser.adminRestaurant.id) {
+        throw new ConflictException('User is already an admin for another restaurant.');
+      }
+
+      // Assign the restaurant to the user to be added
+      userToAdd.adminRestaurant = currentUser.adminRestaurant;
+
+      // Save the changes
+      await this.adminRepository.save(userToAdd);
+
+      return userToAdd;
+    } catch (error) {
+      console.error('Error when adding admin to restaurant:', error);
+      throw new ConflictException('Error when adding admin to restaurant');
+    }
+  }
 }

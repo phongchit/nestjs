@@ -4,6 +4,8 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { createProfileDto } from './dto/create.profile.dto';
 import { profile, user_clients } from 'src/entities';
 import { updateProfileDto } from './dto/update.profile.dto';
+import { CreateReservationDto } from './dto/craate.reservation.dto';
+import { reservation } from 'src/entities/reservation.entity';
 
 @Controller('users')
 export class UsersController {
@@ -43,5 +45,23 @@ export class UsersController {
       @Request() { user }: any,
     ): Promise<profile> {
       return this.userservice.deleteProfile(id, user);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('create-reservation')
+    async createReservation(
+        @Body() createReservationDto: CreateReservationDto,
+        @Request() req: any,
+    ): Promise<reservation> {
+        return this.userservice.createReservation(createReservationDto, req.user);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch(':reservationId/cancel')
+    async cancelReservation(
+      @Param('reservationId') reservationId: string,
+      @Request() req: any, // Assuming you have configured Passport or similar for authentication
+    ): Promise<reservation> {
+      return this.userservice.cancelReservation(reservationId, req.user);
     }
 }

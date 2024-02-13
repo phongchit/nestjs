@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { UserRestaurantsModule } from './user_restaurants/user_restaurants.module';
 import entities from './entities';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TableModule } from './table/table.module';
 
 @Module({
   imports: [AuthModule,ConfigModule.forRoot({isGlobal:true}),
@@ -20,10 +22,13 @@ import entities from './entities';
       entities: entities,
       synchronize: true,
     }),
-    inject:[ConfigService]
-  }),
+    inject:[ConfigService],
+    
+  }),ScheduleModule.forRoot(),
   UsersModule,
-  UserRestaurantsModule],
+  UserRestaurantsModule,
+  TableModule,
+  ],
   controllers: [],
   providers: [],
 })

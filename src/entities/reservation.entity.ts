@@ -26,6 +26,9 @@ import { table } from './table.entity';
     @Column({ type: 'date' })
     reser_date: string;
 
+    @Column({ default: true })
+    reser_status: boolean;
+
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
   

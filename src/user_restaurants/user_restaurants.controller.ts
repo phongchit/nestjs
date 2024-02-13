@@ -11,7 +11,7 @@ import {
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
-import { restaurant, table, zone_table } from 'src/entities';
+import { restaurant, table, user_restaurant, zone_table } from 'src/entities';
 import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
@@ -76,6 +76,15 @@ export class UserRestaurantsController {
   @Get('zones/:zoneId/tables')
   async getTablesForZone(@Request() req: any): Promise<table[]> {
     return this.userRestaurantsService.getTables(req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('add-admin')
+  async addAdminToRestaurant(
+    @Body('username') username: string,
+    @Request() req,
+  ): Promise<user_restaurant> {
+    return this.userRestaurantsService.addAdminToRestaurant(username, req);
   }
 
 }
