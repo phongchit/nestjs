@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { restaurant } from './restaurant.entity';
 import { reservation } from './reservation.entity';
 import { zone_table } from './zone_table.entity';
 
@@ -24,6 +23,9 @@ export class table {
 
   @Column()
   table_describe: string;
+
+  @Column({ default: false })
+  table_status: boolean;
 
   @ManyToOne(() => zone_table, (zone_table) => zone_table.tables)
   zone: zone_table;

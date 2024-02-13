@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
 import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
+import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
 
 @Injectable()
 export class UserRestaurantsService {
@@ -31,7 +32,7 @@ export class UserRestaurantsService {
     return user;
   }
 
-  async findrestaurant(rest_name: string): Promise<restaurant | undefined> {
+  async findOnerestaurant(rest_name: string): Promise<restaurant | undefined> {
     const restaurant = await this.restaurantRepository.findOne({
       where: { rest_name },
     });
@@ -60,9 +61,7 @@ export class UserRestaurantsService {
       throw new BadRequestException('User must have 1 Restaurant.');
     }
 
-    const existingRestaurant = await this.restaurantRepository.findOne({
-      where: { rest_name },
-    });
+    const existingRestaurant = await this.findOnerestaurant(rest_name);
 
     if (existingRestaurant) {
       throw new ConflictException(
@@ -98,8 +97,42 @@ export class UserRestaurantsService {
     }
   }
 
-  async createZone(createZoneDto: CreateZoneDto, @Request() req): Promise<zone_table> {
-    const { zone_name, zone_descripe } = createZoneDto;
+  async getRestaurant(req: any): Promise<restaurant> {
+    try {
+      if (!req.user || !req.user.id) {
+        throw new UnauthorizedException('User information not found in the request.');
+      }
+  
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!user || !user.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+  
+      const restaurant = user.adminRestaurant;
+  
+      if (!restaurant) {
+        throw new NotFoundException('Restaurant not found.');
+      }
+  
+      return restaurant;
+    } catch (error) {
+      console.error('Error when getting restaurant:', error);
+      if (error instanceof NotFoundException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new NotFoundException('Error when getting restaurant');
+    }
+  }
+
+  async updateRestaurant(
+    updateRestaurantDto: UpdateRestaurantDto,
+    @Request() req: any,
+  ): Promise<restaurant> {
+    const { rest_name, rest_description, rest_phone_number } = updateRestaurantDto;
   
     if (!req.user || !req.user.id) {
       throw new UnauthorizedException('User information not found in the request.');
@@ -111,24 +144,72 @@ export class UserRestaurantsService {
         relations: ['adminRestaurant'],
       });
   
+      if (!user || !user.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+
+      const restaurant = user.adminRestaurant;
+  
+      if (!restaurant) {
+        throw new NotFoundException('Restaurant not found.');
+      }
+  
+      // Update the restaurant properties
+      if (rest_name) {
+        restaurant.rest_name = rest_name;
+      }
+  
+      if (rest_description) {
+        restaurant.rest_description = rest_description;
+      }
+  
+      if (rest_phone_number) {
+        restaurant.rest_phone_number = rest_phone_number;
+      }
+  
+      await this.restaurantRepository.save(restaurant);
+      return restaurant;
+    } catch (error) {
+      console.error('Error when updating restaurant:', error);
+      throw new ConflictException('Error when updating restaurant');
+    }
+  }
+  
+
+  async createZone(
+    createZoneDto: CreateZoneDto,
+    @Request() req,
+  ): Promise<zone_table> {
+    const { zone_name, zone_descripe } = createZoneDto;
+
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
+    }
+
+    try {
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+
       if (!user) {
         throw new NotFoundException('User not found.');
       }
-  
+
       const restaurant = user.adminRestaurant;
 
-      console.log(restaurant)
-  
       if (!restaurant) {
         throw new NotFoundException('User has no associated restaurant.');
       }
-  
+
       const newZone = this.zoneRepository.create({
         zone_name,
         zone_descripe,
         restaurant,
       });
-  
+
       return await this.zoneRepository.save(newZone);
     } catch (error) {
       console.error('Error when creating zone:', error);
@@ -136,7 +217,7 @@ export class UserRestaurantsService {
     }
   }
 
-  async getZones(userId: string): Promise<zone_table[]> {
+  async getZones(userId: string,): Promise<zone_table[]> {
     try {
       const user = await this.adminRepository.findOne({
         where: { id: userId },
@@ -144,24 +225,34 @@ export class UserRestaurantsService {
       });
 
       if (!user || !user.adminRestaurant) {
-        throw new UnauthorizedException('User or associated restaurant not found.');
+        throw new UnauthorizedException(
+          'User or associated restaurant not found.',
+        );
       }
 
       const restaurantId = user.adminRestaurant.id;
-      const zones = await this.zoneRepository.find({ where: { restaurant: { id: restaurantId } } });
+      const zones = await this.zoneRepository.find({
+        where: { restaurant: { id: restaurantId } },
+      });
 
       return zones;
     } catch (error) {
       console.error('Error when getting zones for admin:', error);
       throw new UnauthorizedException('Error when getting zones for admin');
     }
-  }  
+  }
 
-  async createTable(createTableDto: CreateTableDto, @Request() req, zoneId: string): Promise<table> {
+  async createTable(
+    createTableDto: CreateTableDto,
+    @Request() req,
+    zoneId: string,
+  ): Promise<table> {
     const { table_number, table_capacity, table_describe } = createTableDto;
 
     if (!req.user || !req.user.id) {
-      throw new UnauthorizedException('User information not found in the request.');
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
     }
 
     try {
@@ -194,6 +285,44 @@ export class UserRestaurantsService {
     } catch (error) {
       console.error('Error when creating table:', error);
       throw new ConflictException('Error when creating table');
+    }
+  }
+
+  async getTables(req: any): Promise<table[]> {
+    try {
+      if (!req.user || !req.user.id) {
+        throw new UnauthorizedException('User information not found in the request.');
+      }
+  
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!user || !user.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+  
+      const restaurant = user.adminRestaurant;
+  
+      const zoneId = req.params.zoneId;
+  
+      const zone = await this.zoneRepository.findOne({
+        where: { id: zoneId, restaurant: { id: restaurant.id } },
+        relations: ['tables'],
+      });
+  
+      if (!zone) {
+        throw new NotFoundException('Zone not found.');
+      }
+  
+      return zone.tables || [];
+    } catch (error) {
+      console.error('Error when getting tables for zone:', error);
+      if (error instanceof NotFoundException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new NotFoundException('Error when getting tables for zone');
     }
   }
 }

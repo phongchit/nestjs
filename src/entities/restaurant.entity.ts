@@ -15,9 +15,6 @@ export class restaurant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // @OneToMany(() => table, (table) => table.restaurant)
-  // tables: table[];
-
   @OneToMany(() => zone_table, (zone_table) => zone_table.restaurant)
   zones: zone_table[];
 
@@ -32,6 +29,9 @@ export class restaurant {
 
   @Column()
   rest_phone_number: string;
+
+  @Column({ default: false })
+  rest_status: boolean;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
