@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { table } from './table.entity';
 import { user_restaurant } from './user_restaurant.entity';
 import { zone_table } from './zone_table.entity';
 
@@ -18,7 +17,10 @@ export class restaurant {
   @OneToMany(() => zone_table, (zone_table) => zone_table.restaurant)
   zones: zone_table[];
 
-  @OneToMany(() => user_restaurant, (userRestaurant) => userRestaurant.adminRestaurant)
+  @OneToMany(
+    () => user_restaurant,
+    (userRestaurant) => userRestaurant.adminRestaurant,
+  )
   admins: user_restaurant[];
 
   @Column()

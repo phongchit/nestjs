@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpUserDto } from './dto/signup.user.dto';
 import { user_clients, user_restaurant } from 'src/entities';
@@ -18,7 +26,9 @@ export class AuthController {
 
   @Post('signup/restaurant')
   @HttpCode(200)
-  async signupRestaurant(@Body() signupDto: SignUpUserDto): Promise<user_restaurant> {
+  async signupRestaurant(
+    @Body() signupDto: SignUpUserDto,
+  ): Promise<user_restaurant> {
     return this.authservice.signupRestaurant(signupDto);
   }
 
@@ -26,7 +36,7 @@ export class AuthController {
   @HttpCode(200)
   @Post('signin/user')
   async login(@Request() req) {
-    return this.authservice.loginUser(req.user)
+    return this.authservice.loginUser(req.user);
   }
 
   @UseGuards(LocalRestaurantAuthGuard)
@@ -41,4 +51,3 @@ export class AuthController {
     return req.user;
   }
 }
- 

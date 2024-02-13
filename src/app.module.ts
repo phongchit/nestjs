@@ -9,25 +9,27 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TableModule } from './table/table.module';
 
 @Module({
-  imports: [AuthModule,ConfigModule.forRoot({isGlobal:true}),
-  TypeOrmModule.forRootAsync({
-    imports:[ConfigModule],
-    useFactory:(configService:ConfigService)=>({
-      type: 'postgres',
-      host: configService.get('DB_HOST'),
-      port: configService.get<number>('DB_PORT'),
-      username: configService.get('DB_USERNAME'),
-      password: configService.get('DB_PASSWORD'),
-      database: configService.get('DB_NAME'),
-      entities: entities,
-      synchronize: true,
+  imports: [
+    AuthModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get('DB_USERNAME'),
+        password: configService.get('DB_PASSWORD'),
+        database: configService.get('DB_NAME'),
+        entities: entities,
+        synchronize: true,
+      }),
+      inject: [ConfigService],
     }),
-    inject:[ConfigService],
-    
-  }),ScheduleModule.forRoot(),
-  UsersModule,
-  UserRestaurantsModule,
-  TableModule,
+    ScheduleModule.forRoot(),
+    UsersModule,
+    UserRestaurantsModule,
+    TableModule,
   ],
   controllers: [],
   providers: [],

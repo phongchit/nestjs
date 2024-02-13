@@ -5,7 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { restaurant, table, user_restaurant, zone_table } from 'src/entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([user_restaurant,restaurant,zone_table,table])],
+  imports: [
+    TypeOrmModule.forFeature([user_restaurant, restaurant, zone_table, table]),
+  ],
   exports: [UserRestaurantsService],
   providers: [UserRestaurantsService],
   controllers: [UserRestaurantsController],

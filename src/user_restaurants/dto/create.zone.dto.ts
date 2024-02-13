@@ -6,5 +6,4 @@ export class CreateZoneDto {
 
   @IsOptional()
   zone_descripe?: string;
-
 }

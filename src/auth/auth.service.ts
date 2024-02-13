@@ -14,8 +14,10 @@ export class AuthService {
     private usersService: UsersService,
     private restaurantService: UserRestaurantsService,
     private jwtService: JwtService,
-    @InjectRepository(user_clients) private readonly userRepository: Repository<user_clients>,
-    @InjectRepository(user_restaurant) private  adminRepository: Repository<user_restaurant>
+    @InjectRepository(user_clients)
+    private readonly userRepository: Repository<user_clients>,
+    @InjectRepository(user_restaurant)
+    private adminRepository: Repository<user_restaurant>,
   ) {}
 
   async signupUser(signupDto: SignUpUserDto): Promise<user_clients> {
@@ -75,18 +77,18 @@ export class AuthService {
   }
 
   async loginUser(user: any): Promise<any> {
-    const payload = { username: user.username, sub: user.id }
+    const payload = { username: user.username, sub: user.id };
 
     return {
-        accessToken: this.jwtService.sign(payload)
-    }
-}
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
 
   async loginRestaurant(admin: any): Promise<any> {
     const payload = { username: admin.username, sub: admin.id };
 
     return {
-      accessToken: this.jwtService.sign(payload)
-  }
+      accessToken: this.jwtService.sign(payload),
+    };
   }
 }

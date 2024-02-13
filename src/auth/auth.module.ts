@@ -14,11 +14,23 @@ import { LocalRestaurantAuthGuard } from './local/local-restaurant.guard';
 import { LocalrestaurantStrategy } from './local/local-restaurant.strategy';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([user_clients,user_restaurant]),UsersModule,UserRestaurantsModule,PassportModule,JwtModule.register({
-    secret: jwtConstants.secret,
-    signOptions:{expiresIn:'7d'}
-  })],
+  imports: [
+    TypeOrmModule.forFeature([user_clients, user_restaurant]),
+    UsersModule,
+    UserRestaurantsModule,
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '7d' },
+    }),
+  ],
   controllers: [AuthController],
-  providers: [AuthService,LocalUserStrategy,LocalrestaurantStrategy,LocalRestaurantAuthGuard,JwtStrategy],
+  providers: [
+    AuthService,
+    LocalUserStrategy,
+    LocalrestaurantStrategy,
+    LocalRestaurantAuthGuard,
+    JwtStrategy,
+  ],
 })
 export class AuthModule {}

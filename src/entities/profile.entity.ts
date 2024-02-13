@@ -3,7 +3,6 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -30,7 +29,7 @@ export class profile {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @OneToOne(()=> user_clients)
+  @OneToOne(() => user_clients)
   @JoinColumn()
-  user:user_clients
+  user: user_clients;
 }

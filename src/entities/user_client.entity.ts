@@ -30,5 +30,4 @@ export class user_clients {
 
   @OneToMany(() => reservation, (reservation) => reservation.userClient)
   reservations: reservation[];
-
 }

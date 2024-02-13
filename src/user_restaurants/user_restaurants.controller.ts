@@ -44,7 +44,10 @@ export class UserRestaurantsController {
     @Body() updateRestaurantDto: UpdateRestaurantDto,
     @Request() req,
   ): Promise<restaurant> {
-    return this.userRestaurantsService.updateRestaurant(updateRestaurantDto, req);
+    return this.userRestaurantsService.updateRestaurant(
+      updateRestaurantDto,
+      req,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -86,5 +89,4 @@ export class UserRestaurantsController {
   ): Promise<user_restaurant> {
     return this.userRestaurantsService.addAdminToRestaurant(username, req);
   }
-
 }

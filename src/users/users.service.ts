@@ -121,19 +121,16 @@ export class UsersService {
     try {
       const { tableId, reser_time, reser_date } = createReservationDto;
 
-      // Check if the table exists
       const table = await this.findTable(tableId);
 
       if (!table) {
         throw new NotFoundException('Table not found.');
       }
 
-      // Check if the table is available (status is false)
       if (table.table_status) {
         throw new ConflictException('Table is not available for reservation.');
       }
 
-      // Check if reser_date is in the future
       const currentDateTime = new Date();
       const reservationDateTime = new Date(`${reser_date} ${reser_time}`);
 
@@ -141,7 +138,6 @@ export class UsersService {
         throw new ConflictException('Reservation date must be in the future.');
       }
 
-      // Check if reser_date is more than 7 days in the future
       const sevenDaysFromNow = new Date();
       sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
@@ -151,7 +147,6 @@ export class UsersService {
         );
       }
 
-      // Check if the table is available on the specified date
       const isTableAvailable = await this.isTableAvailableOnDate(
         tableId,
         reser_date,
@@ -163,7 +158,6 @@ export class UsersService {
         );
       }
 
-      // Create a new reservation
       const newReservation = this.reservationRepository.create({
         userClient: req,
         table,
@@ -171,7 +165,6 @@ export class UsersService {
         reser_date,
       });
 
-      // Save the reservation and update the table status
       await Promise.all([
         this.reservationRepository.save(newReservation),
         this.updateTableStatus(tableId, reser_date),
@@ -204,7 +197,6 @@ export class UsersService {
   ): Promise<void> {
     const table = await this.findTable(tableId);
     if (table) {
-      // Update the table status to true only if the reser_date matches the current date
       const currentDateTime = new Date();
       const reservationDateTime = new Date(`${reser_date} 00:00:00`);
 
@@ -220,11 +212,10 @@ export class UsersService {
   }
 
   async cancelReservation(
-    reservationId: string, // Added parameter to get reservationId from request params
+    reservationId: string,
     user: user_clients,
   ): Promise<reservation> {
     try {
-      // Check if the reservation exists
       const reservation = await this.reservationRepository.findOne({
         where: { id: reservationId, userClient: user },
         relations: ['table'],

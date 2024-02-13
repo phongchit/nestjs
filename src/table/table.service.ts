@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { table } from 'src/entities'; // Adjust the import path as per your project structure
+import { table } from 'src/entities';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -14,7 +14,6 @@ export class TableService {
     timeZone: 'Asia/Bangkok',
   })
   async resetTableStatus(): Promise<void> {
-    // Find all tables and reset their status to false
     const tables = await this.tableRepository.find();
     tables.forEach(async (table) => {
       table.table_status = false;

@@ -1,6 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
-import { restaurant } from "./restaurant.entity";
-import { table } from "./table.entity";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import { restaurant } from './restaurant.entity';
+import { table } from './table.entity';
 
 @Entity()
 export class zone_table {

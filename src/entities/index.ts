@@ -16,6 +16,13 @@ const entities = [
   zone_table,
 ];
 
-export { user_clients, profile, user_restaurant, table, restaurant, zone_table };
+export {
+  user_clients,
+  profile,
+  user_restaurant,
+  table,
+  restaurant,
+  zone_table,
+};
 
 export default entities;
