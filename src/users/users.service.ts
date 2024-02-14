@@ -4,7 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { profile, table, user_clients } from 'src/entities';
+import {
+  profile,
+  restaurant,
+  table,
+  user_clients,
+  zone_table,
+} from 'src/entities';
 import { Repository } from 'typeorm';
 import { createProfileDto } from './dto/create.profile.dto';
 import { updateProfileDto } from './dto/update.profile.dto';
@@ -20,7 +26,11 @@ export class UsersService {
     @InjectRepository(reservation)
     private reservationRepository: Repository<reservation>,
     @InjectRepository(table) private tableRepository: Repository<table>,
-  ) {}
+    @InjectRepository(restaurant)
+    private restaurantRepository: Repository<restaurant>,
+    @InjectRepository(zone_table)
+    private zone_tableRepository: Repository<zone_table>,
+  ) { }
 
   async findOne(username: string): Promise<user_clients | undefined> {
     const user = await this.userRepository.findOne({ where: { username } });
@@ -237,6 +247,43 @@ export class UsersService {
         await this.tableRepository.save(reservation.table);
       }
       return reservation;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllRestaurants(): Promise<restaurant[]> {
+    try {
+      const restaurants = await this.restaurantRepository.find();
+      return restaurants;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getTablesByRestaurantId(restaurantId: string): Promise<any> {
+    try {
+      // Find the restaurant by ID with its associated zones and tables
+      const selectedRestaurant = await this.restaurantRepository.findOneOrFail({
+        where: { id: restaurantId },
+        relations: ['zones', 'zones.tables'],
+      });
+
+      if (!selectedRestaurant) {
+        throw new NotFoundException('Restaurant not found.');
+      }
+
+      // Extract zones and tables from the selected restaurant
+      const zonesWithTables = selectedRestaurant.zones.map((zone: any) => ({
+        id: zone.id,
+        zone_name: zone.zone_name,
+        zone_descripe: zone.zone_descripe,
+        createdAt: zone.createdAt,
+        updatedAt: zone.updatedAt,
+        tables: zone.tables,
+      }));
+
+      return { zones: zonesWithTables };
     } catch (error) {
       throw error;
     }

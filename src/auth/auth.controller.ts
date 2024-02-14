@@ -16,7 +16,7 @@ import { LocalRestaurantAuthGuard } from './local/local-restaurant.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authservice: AuthService) {}
+  constructor(private readonly authservice: AuthService) { }
 
   @Post('signup/user')
   @HttpCode(200)

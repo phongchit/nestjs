@@ -12,7 +12,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { createProfileDto } from './dto/create.profile.dto';
-import { profile, user_clients } from 'src/entities';
+import { profile, restaurant, table, user_clients, zone_table } from 'src/entities';
 import { updateProfileDto } from './dto/update.profile.dto';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { reservation } from 'src/entities/reservation.entity';
@@ -71,5 +71,19 @@ export class UsersController {
     @Request() req: any,
   ): Promise<reservation> {
     return this.userservice.cancelReservation(reservationId, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('restaurant')
+  async getReservation(): Promise<restaurant[]> {
+    return this.userservice.getAllRestaurants();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':restaurantId/zones')
+  async getRestaurant(
+    @Param('restaurantId') restaurantId: string,
+  ): Promise<any> {
+    return this.userservice.getTablesByRestaurantId(restaurantId);
   }
 }
