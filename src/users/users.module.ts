@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { profile, restaurant, table, user_clients, zone_table } from 'src/entities';
+import { profile, reservation, restaurant, table, user_clients, zone_table } from 'src/entities';
 import { UsersController } from './users.controller';
-import { reservation } from 'src/entities/reservation.entity';
 
 @Module({
   imports: [

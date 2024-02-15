@@ -14,6 +14,7 @@ const entities = [
   restaurant,
   reservation,
   zone_table,
+  reservation
 ];
 
 export {
@@ -23,6 +24,7 @@ export {
   table,
   restaurant,
   zone_table,
+  reservation,
 };
 
 export default entities;

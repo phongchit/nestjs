@@ -7,11 +7,18 @@ import {
   Param,
   Get,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
-import { restaurant, table, user_restaurant, zone_table } from 'src/entities';
+import {
+  reservation,
+  restaurant,
+  table,
+  user_restaurant,
+  zone_table,
+} from 'src/entities';
 import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
@@ -61,7 +68,7 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('zones')
-  async getZonesForAdmin(@Request() req: any) {
+  async getZones(@Request() req: any) {
     return this.userRestaurantsService.getZones(req.user.id);
   }
 
@@ -83,10 +90,36 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('add-admin')
-  async addAdminToRestaurant(
+  async addAdmin(
     @Body('username') username: string,
     @Request() req,
   ): Promise<user_restaurant> {
-    return this.userRestaurantsService.addAdminToRestaurant(username, req);
+    return this.userRestaurantsService.addAdmin(username, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('cancel-reservation/:reservationId')
+  async cancelReservation(
+    @Param('reservationId') reservationId: string,
+    @Request() req: any,
+  ): Promise<void> {
+    return this.userRestaurantsService.cancelReservation(reservationId, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('reservations')
+  async getReservations(
+    @Request() req: any,
+    @Query('date') date?: string,
+  ): Promise<reservation[]> {
+    return this.userRestaurantsService.getReservations(req,date);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('tables/:tableId/reservations') // Define your route
+  async getReservationsByTableId(
+    @Param('tableId') tableId: string,
+  ): Promise<reservation[]> {
+    return this.userRestaurantsService.getReservationsByTableId(tableId);
   }
 }

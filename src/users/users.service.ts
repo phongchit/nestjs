@@ -30,7 +30,7 @@ export class UsersService {
     private restaurantRepository: Repository<restaurant>,
     @InjectRepository(zone_table)
     private zone_tableRepository: Repository<zone_table>,
-  ) { }
+  ) {}
 
   async findOne(username: string): Promise<user_clients | undefined> {
     const user = await this.userRepository.findOne({ where: { username } });
@@ -39,7 +39,7 @@ export class UsersService {
 
   async createProfile(
     createprofiledto: createProfileDto,
-    req: any,
+    user: user_clients,
   ): Promise<profile> {
     const { first_name, last_name, phone_number } = createprofiledto;
 
@@ -47,7 +47,7 @@ export class UsersService {
       first_name,
       last_name,
       phone_number,
-      user: req.user,
+      user: user,
     });
 
     try {
@@ -58,10 +58,10 @@ export class UsersService {
     }
   }
 
-  async getProfile(req: user_clients): Promise<profile> {
+  async getProfile(user: user_clients): Promise<profile> {
     try {
       const profile = await this.profileRepository.findOne({
-        where: { id: req.id },
+        where: { id: user.id },
       });
       return profile;
     } catch (error) {
@@ -126,7 +126,7 @@ export class UsersService {
 
   async createReservation(
     createReservationDto: CreateReservationDto,
-    req: any,
+    user: user_clients,
   ): Promise<reservation> {
     try {
       const { tableId, reser_time, reser_date } = createReservationDto;
@@ -169,7 +169,7 @@ export class UsersService {
       }
 
       const newReservation = this.reservationRepository.create({
-        userClient: req,
+        userClient: user,
         table,
         reser_time,
         reser_date,
@@ -261,9 +261,8 @@ export class UsersService {
     }
   }
 
-  async getTablesByRestaurantId(restaurantId: string): Promise<any> {
+  async getZoneByRestaurantId(restaurantId: string): Promise<any> {
     try {
-      // Find the restaurant by ID with its associated zones and tables
       const selectedRestaurant = await this.restaurantRepository.findOneOrFail({
         where: { id: restaurantId },
         relations: ['zones', 'zones.tables'],
@@ -272,20 +271,57 @@ export class UsersService {
       if (!selectedRestaurant) {
         throw new NotFoundException('Restaurant not found.');
       }
-
-      // Extract zones and tables from the selected restaurant
-      const zonesWithTables = selectedRestaurant.zones.map((zone: any) => ({
-        id: zone.id,
-        zone_name: zone.zone_name,
-        zone_descripe: zone.zone_descripe,
-        createdAt: zone.createdAt,
-        updatedAt: zone.updatedAt,
-        tables: zone.tables,
-      }));
+      const zonesWithTables = selectedRestaurant.zones.map(
+        (zone: zone_table) => ({
+          id: zone.id,
+          zone_name: zone.zone_name,
+          zone_descripe: zone.zone_descripe,
+          createdAt: zone.createdAt,
+          updatedAt: zone.updatedAt,
+          tables: zone.tables,
+        }),
+      );
 
       return { zones: zonesWithTables };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async getTableDetailsById(tableId: string): Promise<table> {
+    try {
+      const tableDetails = await this.tableRepository.findOne({
+        where: { id: tableId },
+        relations: ['zone'],
+      });
+
+      return tableDetails;
+    } catch (error) {
+      console.error('Error when getting table details:', error);
+      throw new NotFoundException('Table not found.');
+    }
+  }
+
+  async getReservations(
+    user: user_clients,
+    date?: string,
+  ): Promise<reservation[]> {
+    try {
+      const whereCondition: any = { userClient: user };
+
+      if (date) {
+        whereCondition.reser_date = date;
+      }
+
+      const userReservations = await this.reservationRepository.find({
+        where: whereCondition,
+        relations: ['table'],
+      });
+
+      return userReservations;
+    } catch (error) {
+      console.error('Error when getting user reservations:', error);
+      throw new NotFoundException('Error when getting user reservations');
     }
   }
 }

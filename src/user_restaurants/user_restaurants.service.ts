@@ -13,6 +13,7 @@ import { CreateRestaurantDto } from './dto/create.restaurant.dto';
 import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
+import { reservation } from 'src/entities/reservation.entity';
 
 @Injectable()
 export class UserRestaurantsService {
@@ -25,6 +26,8 @@ export class UserRestaurantsService {
     private zoneRepository: Repository<zone_table>,
     @InjectRepository(table)
     private tableRepository: Repository<table>,
+    @InjectRepository(reservation)
+    private reservationRepository: Repository<reservation>,
   ) {}
 
   async findOne(username: string): Promise<user_restaurant | undefined> {
@@ -337,10 +340,7 @@ export class UserRestaurantsService {
     }
   }
 
-  async addAdminToRestaurant(
-    username: string,
-    req: any,
-  ): Promise<user_restaurant> {
+  async addAdmin(username: string, req: any): Promise<user_restaurant> {
     try {
       const currentUserId = req.user.id;
 
@@ -381,6 +381,133 @@ export class UserRestaurantsService {
     } catch (error) {
       console.error('Error when adding admin to restaurant:', error);
       throw new ConflictException('Error when adding admin to restaurant');
+    }
+  }
+
+  async cancelReservation(reservationId: string, req: any): Promise<void> {
+    try {
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!user || !user.adminRestaurant) {
+        throw new UnauthorizedException(
+          'User or associated restaurant not found.',
+        );
+      }
+
+      const reservation = await this.reservationRepository.findOne({
+        where: {
+          id: reservationId,
+          table: { zone: { restaurant: user.adminRestaurant } },
+        },
+        relations: ['table'],
+      });
+
+      if (!reservation) {
+        throw new NotFoundException(
+          'Reservation not found or you do not have permission to cancel it.',
+        );
+      }
+
+      if (!reservation.reser_status) {
+        throw new ConflictException('Reservation is already canceled.');
+      }
+
+      reservation.reser_status = false;
+      await this.reservationRepository.save(reservation);
+
+      if (reservation.table) {
+        reservation.table.table_status = false;
+        await this.tableRepository.save(reservation.table);
+      }
+    } catch (error) {
+      console.error('Error when canceling reservation for restaurant:', error);
+      throw new NotFoundException(
+        'Error when canceling reservation for restaurant',
+      );
+    }
+  }
+
+  async getReservations(req: any, date?: string): Promise<reservation[]> {
+    try {
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!user || !user.adminRestaurant) {
+        throw new UnauthorizedException(
+          'User or associated restaurant not found.',
+        );
+      }
+  
+      const userRestaurant = user.adminRestaurant;
+  
+      const restaurantWithDetails =
+        await this.restaurantRepository.findOneOrFail({
+          where: { id: userRestaurant.id },
+          relations: [
+            'zones',
+            'zones.tables',
+            'zones.tables.reservations',
+            'zones.tables.reservations.userClient',
+          ],
+        });
+  
+      const reservations = [];
+  
+      for (const zone of restaurantWithDetails.zones) {
+        for (const table of zone.tables) {
+          for (const reservation of table.reservations) {
+            // Check if the reservation date matches the specified date
+            if (date && reservation.reser_date !== date) {
+              continue; // Skip to the next iteration if the dates don't match
+            }
+  
+            reservations.push({
+              reservationId: reservation.id,
+              reser_time: reservation.reser_time,
+              reser_date: reservation.reser_date,
+              reser_status: reservation.reser_status,
+              user: {
+                username: reservation.userClient.username,
+              },
+              table: {
+                table_number: table.table_number,
+              },
+            });
+          }
+        }
+      }
+  
+      return reservations;
+    } catch (error) {
+      console.error('Error when getting reservations for restaurant:', error);
+      throw new NotFoundException(
+        'Error when getting reservations for restaurant',
+      );
+    }
+  }
+
+  async getReservationsByTableId(tableId: string): Promise<reservation[]> {
+    try {
+      const table = await this.tableRepository.findOne({
+        where: { id: tableId },
+        relations: ['reservations'],
+      });
+
+      if (!table) {
+        throw new NotFoundException('Table not found.');
+      }
+
+      return table.reservations || [];
+    } catch (error) {
+      console.error('Error when getting reservations by table ID:', error);
+      throw new NotFoundException(
+        'Error when getting reservations by table ID',
+      );
     }
   }
 }
