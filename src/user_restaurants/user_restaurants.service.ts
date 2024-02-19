@@ -172,6 +172,14 @@ export class UserRestaurantsService {
         throw new NotFoundException('Restaurant not found.');
       }
 
+      const existingRestaurant = await this.findOnerestaurant(rest_name);
+
+      if (existingRestaurant) {
+        throw new ConflictException(
+          'Restaurant with the same name already exists',
+        );
+      }
+      
       if (rest_name) {
         restaurant.rest_name = rest_name;
       }
@@ -513,6 +521,49 @@ export class UserRestaurantsService {
       throw new NotFoundException(
         'Error when getting reservations by table ID',
       );
+    }
+  }
+
+  async deleteAdmin(username: string, req: any): Promise<any> {
+    try {
+      const currentUserId = req.user.id;
+
+      const currentUser = await this.adminRepository.findOne({
+        where: { id: currentUserId },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!currentUser || !currentUser.adminRestaurant) {
+        throw new UnauthorizedException(
+          'User or associated restaurant not found.',
+        );
+      }
+
+      const adminToDelete = await this.adminRepository.findOne({
+        where: { username },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!adminToDelete) {
+        throw new NotFoundException('Admin user to be deleted not found.');
+      }
+
+      if (
+        adminToDelete.adminRestaurant &&
+        adminToDelete.adminRestaurant.id !== currentUser.adminRestaurant.id
+      ) {
+        throw new ConflictException(
+          'Admin user is associated with another restaurant.',
+        );
+      }
+
+      adminToDelete.adminRestaurant = null  ;
+
+      await this.adminRepository.save(adminToDelete);
+      return { message: 'Admin deleted successfully.' };
+    } catch (error) {
+      console.error('Error when deleting admin from restaurant:', error);
+      throw new ConflictException('Error when deleting admin from restaurant');
     }
   }
 }

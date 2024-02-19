@@ -89,12 +89,21 @@ export class UserRestaurantsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('add-admin')
+  @Patch('add/admin')
   async addAdmin(
     @Body('username') username: string,
     @Request() req,
   ): Promise<user_restaurant> {
     return this.userRestaurantsService.addAdmin(username, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('delete/admin')
+  async deleteAdmin(
+    @Body('username') username: string,
+    @Request() req,
+  ): Promise<user_restaurant> {
+    return this.userRestaurantsService.deleteAdmin(username, req);
   }
 
   @UseGuards(JwtAuthGuard)
