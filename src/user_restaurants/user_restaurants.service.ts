@@ -179,7 +179,7 @@ export class UserRestaurantsService {
           'Restaurant with the same name already exists',
         );
       }
-      
+
       if (rest_name) {
         restaurant.rest_name = rest_name;
       }
@@ -557,7 +557,7 @@ export class UserRestaurantsService {
         );
       }
 
-      adminToDelete.adminRestaurant = null  ;
+      adminToDelete.adminRestaurant = null;
 
       await this.adminRepository.save(adminToDelete);
       return { message: 'Admin deleted successfully.' };

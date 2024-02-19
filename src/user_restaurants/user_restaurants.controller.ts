@@ -112,7 +112,7 @@ export class UserRestaurantsController {
     @Request() req: any,
     @Query('date') date?: string,
   ): Promise<reservation[]> {
-    return this.userRestaurantsService.getReservations(req,date);
+    return this.userRestaurantsService.getReservations(req, date);
   }
 
   @UseGuards(JwtAuthGuard)
