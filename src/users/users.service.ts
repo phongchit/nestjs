@@ -37,88 +37,6 @@ export class UsersService {
     return user;
   }
 
-  async createProfile(
-    createprofiledto: createProfileDto,
-    user: user_clients,
-  ): Promise<profile> {
-    const { first_name, last_name, phone_number } = createprofiledto;
-
-    const profile = this.profileRepository.create({
-      first_name,
-      last_name,
-      phone_number,
-      user: user,
-    });
-
-    try {
-      await this.profileRepository.save(profile);
-      return profile;
-    } catch (error) {
-      throw new ConflictException();
-    }
-  }
-
-  async getProfile(user: user_clients): Promise<profile> {
-    try {
-      const profile = await this.profileRepository.findOne({
-        where: { id: user.id },
-      });
-      return profile;
-    } catch (error) {
-      throw new NotFoundException();
-    }
-  }
-
-  async getProfileById(id: string, user: user_clients): Promise<profile> {
-    try {
-      const profile = await this.profileRepository.findOne({
-        where: { user, id },
-      });
-      return profile;
-    } catch (error) {
-      throw new NotFoundException();
-    }
-  }
-
-  async updateProfile(
-    id: string,
-    updateprofileDto: updateProfileDto,
-    user: user_clients,
-  ) {
-    try {
-      const profile = await this.getProfileById(id, user);
-
-      const { first_name, last_name, phone_number } = updateprofileDto;
-
-      if (first_name) {
-        profile.first_name = first_name;
-      }
-
-      if (last_name) {
-        profile.last_name = last_name;
-      }
-
-      if (phone_number) {
-        profile.phone_number = phone_number;
-      }
-
-      await this.profileRepository.save(profile);
-      return profile;
-    } catch (error) {
-      throw new NotFoundException();
-    }
-  }
-
-  async deleteProfile(id: string, user: user_clients) {
-    try {
-      const profile = await this.getProfileById(id, user);
-      await this.profileRepository.delete(id);
-      return profile;
-    } catch (error) {
-      throw new NotFoundException();
-    }
-  }
-
   async findTable(id: string): Promise<table | undefined> {
     const table = await this.tableRepository.findOne({ where: { id } });
     return table;
@@ -135,10 +53,6 @@ export class UsersService {
 
       if (!table) {
         throw new NotFoundException('Table not found.');
-      }
-
-      if (table.table_status) {
-        throw new ConflictException('Table is not available for reservation.');
       }
 
       const currentDateTime = new Date();
@@ -190,7 +104,7 @@ export class UsersService {
     tableId: string,
     reser_date: string,
   ): Promise<boolean> {
-    const existingReservations = await this.reservationRepository.find({
+    const reservationCount = await this.reservationRepository.count({
       where: {
         table: { id: tableId },
         reser_date,
@@ -198,7 +112,7 @@ export class UsersService {
       },
     });
 
-    return existingReservations.length === 0;
+    return reservationCount === 0;
   }
 
   private async updateTableStatus(
@@ -206,15 +120,15 @@ export class UsersService {
     reser_date: string,
   ): Promise<void> {
     const table = await this.findTable(tableId);
+
     if (table) {
       const currentDateTime = new Date();
-      const reservationDateTime = new Date(`${reser_date} 00:00:00`);
+      const reservationDateTime = new Date(reser_date);
 
-      if (
-        reservationDateTime.getDate() === currentDateTime.getDate() &&
-        reservationDateTime.getMonth() === currentDateTime.getMonth() &&
-        reservationDateTime.getFullYear() === currentDateTime.getFullYear()
-      ) {
+      currentDateTime.setHours(0, 0, 0, 0);
+      reservationDateTime.setHours(0, 0, 0, 0);
+
+      if (reservationDateTime.getTime() === currentDateTime.getTime()) {
         table.table_status = true;
         await this.tableRepository.save(table);
       }
@@ -282,23 +196,9 @@ export class UsersService {
         }),
       );
 
-      return { zones: zonesWithTables };
+      return zonesWithTables;
     } catch (error) {
       throw error;
-    }
-  }
-
-  async getTableDetailsById(tableId: string): Promise<table> {
-    try {
-      const tableDetails = await this.tableRepository.findOne({
-        where: { id: tableId },
-        relations: ['zone'],
-      });
-
-      return tableDetails;
-    } catch (error) {
-      console.error('Error when getting table details:', error);
-      throw new NotFoundException('Table not found.');
     }
   }
 

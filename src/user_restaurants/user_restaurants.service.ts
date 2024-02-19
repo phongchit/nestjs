@@ -35,11 +35,27 @@ export class UserRestaurantsService {
     return user;
   }
 
-  async findOnerestaurant(rest_name: string): Promise<restaurant | undefined> {
+  private async findOnerestaurant(
+    rest_name: string,
+  ): Promise<restaurant | undefined> {
     const restaurant = await this.restaurantRepository.findOne({
       where: { rest_name },
     });
     return restaurant;
+  }
+  private async checkUser(userId: string) {
+    const user = await this.adminRepository.findOne({
+      where: { id: userId },
+      relations: ['adminRestaurant'],
+    });
+
+    if (!user || !user.adminRestaurant) {
+      throw new UnauthorizedException(
+        'User or associated restaurant not found.',
+      );
+    }
+
+    return user;
   }
 
   async createRestaurant(
@@ -49,16 +65,7 @@ export class UserRestaurantsService {
     const { rest_name, rest_description, rest_phone_number } =
       createRestaurantDto;
 
-    if (!req.user || !req.user.id) {
-      throw new UnauthorizedException(
-        'User information not found in the request.',
-      );
-    }
-
-    const user = await this.adminRepository.findOne({
-      where: { id: req.user.id },
-      relations: ['adminRestaurant'],
-    });
+    const user = await this.checkUser(req.user.id);
 
     if (user.adminRestaurant) {
       throw new BadRequestException('User must have 1 Restaurant.');
@@ -384,7 +391,7 @@ export class UserRestaurantsService {
     }
   }
 
-  async cancelReservation(reservationId: string, req: any): Promise<void> {
+  async cancelReservation(reservationId: string, req: any): Promise<any> {
     try {
       const user = await this.adminRepository.findOne({
         where: { id: req.user.id },
@@ -400,7 +407,6 @@ export class UserRestaurantsService {
       const reservation = await this.reservationRepository.findOne({
         where: {
           id: reservationId,
-          table: { zone: { restaurant: user.adminRestaurant } },
         },
         relations: ['table'],
       });
@@ -419,9 +425,18 @@ export class UserRestaurantsService {
       await this.reservationRepository.save(reservation);
 
       if (reservation.table) {
-        reservation.table.table_status = false;
-        await this.tableRepository.save(reservation.table);
+        const currentDateTime = new Date();
+        const reservationDateTime = new Date(reservation.reser_date);
+
+        currentDateTime.setHours(0, 0, 0, 0);
+        reservationDateTime.setHours(0, 0, 0, 0);
+
+        if (reservationDateTime.getTime() === currentDateTime.getTime()) {
+          reservation.table.table_status = false;
+          await this.tableRepository.save(reservation.table);
+        }
       }
+      return reservation || [];
     } catch (error) {
       console.error('Error when canceling reservation for restaurant:', error);
       throw new NotFoundException(
@@ -432,19 +447,9 @@ export class UserRestaurantsService {
 
   async getReservations(req: any, date?: string): Promise<reservation[]> {
     try {
-      const user = await this.adminRepository.findOne({
-        where: { id: req.user.id },
-        relations: ['adminRestaurant'],
-      });
-  
-      if (!user || !user.adminRestaurant) {
-        throw new UnauthorizedException(
-          'User or associated restaurant not found.',
-        );
-      }
-  
+      const user = await this.checkUser(req.user.id);
       const userRestaurant = user.adminRestaurant;
-  
+
       const restaurantWithDetails =
         await this.restaurantRepository.findOneOrFail({
           where: { id: userRestaurant.id },
@@ -455,9 +460,9 @@ export class UserRestaurantsService {
             'zones.tables.reservations.userClient',
           ],
         });
-  
+
       const reservations = [];
-  
+
       for (const zone of restaurantWithDetails.zones) {
         for (const table of zone.tables) {
           for (const reservation of table.reservations) {
@@ -465,7 +470,7 @@ export class UserRestaurantsService {
             if (date && reservation.reser_date !== date) {
               continue; // Skip to the next iteration if the dates don't match
             }
-  
+
             reservations.push({
               reservationId: reservation.id,
               reser_time: reservation.reser_time,
@@ -481,7 +486,7 @@ export class UserRestaurantsService {
           }
         }
       }
-  
+
       return reservations;
     } catch (error) {
       console.error('Error when getting reservations for restaurant:', error);

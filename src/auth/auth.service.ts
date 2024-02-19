@@ -21,7 +21,9 @@ export class AuthService {
   ) {}
 
   async signupUser(signupDto: SignUpUserDto): Promise<user_clients> {
-    const { email, username, password } = signupDto;
+    let { email, username, password } = signupDto;
+    email = email.toLowerCase();
+    username = username.toLowerCase();
     const existingUser = await this.userRepository.findOne({
       where: [{ username }, { email }],
     });
@@ -40,7 +42,9 @@ export class AuthService {
   }
 
   async signupRestaurant(signupDto: SignUpUserDto): Promise<user_restaurant> {
-    const { email, username, password } = signupDto;
+    let { email, username, password } = signupDto;
+    email = email.toLowerCase();
+    username = username.toLowerCase();
     const existingUser = await this.adminRepository.findOne({
       where: [{ username }, { email }],
     });

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   Post,
   Request,
@@ -10,7 +9,6 @@ import {
 import { AuthService } from './auth.service';
 import { SignUpUserDto } from './dto/signup.user.dto';
 import { user_clients, user_restaurant } from 'src/entities';
-import { JwtAuthGuard } from './jwt/jwt.guard';
 import { LocalUserAuthGuard } from './local/local-user.guard';
 import { LocalRestaurantAuthGuard } from './local/local-restaurant.guard';
 

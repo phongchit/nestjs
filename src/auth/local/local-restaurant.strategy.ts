@@ -13,8 +13,9 @@ export class LocalrestaurantStrategy extends PassportStrategy(
   }
 
   async validate(username: string, password: string): Promise<any> {
+    const Username = username.toLowerCase();
     const restaurant = await this.authService.validateRestaurant(
-      username,
+      Username,
       password,
     );
     if (!restaurant) {

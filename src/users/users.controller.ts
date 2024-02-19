@@ -23,41 +23,7 @@ export class UsersController {
   constructor(private userservice: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('profile')
-  async createProfile(
-    @Body() createprofiledto: createProfileDto,
-    @Request() req: any,
-  ): Promise<profile> {
-    return this.userservice.createProfile(createprofiledto, req);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Request() req: any): Promise<profile> {
-    return this.userservice.getProfile(req);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('profile/:id')
-  async updateProfile(
-    @Param('id') id: string,
-    @Body() updateprofileDto: updateProfileDto,
-    @Request() { user }: any,
-  ): Promise<profile> {
-    return this.userservice.updateProfile(id, updateprofileDto, user);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Delete('profile/:id')
-  async deleteProfile(
-    @Param('id') id: string,
-    @Request() { user }: any,
-  ): Promise<profile> {
-    return this.userservice.deleteProfile(id, user);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('create-reservation')
+  @Post('create/reservation')
   async createReservation(
     @Body() createReservationDto: CreateReservationDto,
     @Request() req: any,
@@ -84,12 +50,6 @@ export class UsersController {
   @Get(':restaurantId/zones')
   async getZone(@Param('restaurantId') restaurantId: string): Promise<any> {
     return this.userservice.getZoneByRestaurantId(restaurantId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('tables/:tableId')
-  async getTableDetails(@Param('tableId') tableId: string): Promise<table> {
-    return this.userservice.getTableDetailsById(tableId);
   }
 
   @UseGuards(JwtAuthGuard)
