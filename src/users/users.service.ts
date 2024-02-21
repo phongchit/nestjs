@@ -141,7 +141,7 @@ export class UsersService {
   ): Promise<reservation> {
     try {
       const reservation = await this.reservationRepository.findOne({
-        where: { id: reservationId, userClient: user },
+        where: { id: reservationId, userClient: { id: user.id } },
         relations: ['table'],
       });
 

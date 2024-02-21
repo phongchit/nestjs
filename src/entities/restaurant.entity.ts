@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { user_restaurant } from './user_restaurant.entity';
 import { zone_table } from './zone_table.entity';
+import { restaurantPhotos } from './restaurant.photo.entity';
 
 @Entity()
 export class restaurant {
@@ -22,6 +23,9 @@ export class restaurant {
     (userRestaurant) => userRestaurant.adminRestaurant,
   )
   admins: user_restaurant[];
+
+  @OneToMany(() => restaurantPhotos, (photo) => photo.restaurant)
+  photos: restaurantPhotos[]
 
   @Column()
   rest_name: string;

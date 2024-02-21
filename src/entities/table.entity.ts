@@ -27,6 +27,9 @@ export class table {
   @Column({ default: false })
   table_status: boolean;
 
+  @Column({ nullable: true } )
+  photo: string
+
   @ManyToOne(() => zone_table, (zone_table) => zone_table.tables)
   zone: zone_table;
 
