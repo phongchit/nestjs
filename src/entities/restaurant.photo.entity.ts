@@ -9,6 +9,6 @@ export class restaurantPhotos {
     @Column()
     url: string
 
-    @ManyToOne(() => restaurant, (restaurant) => restaurant.photos)
+    @ManyToOne(() => restaurant, (restaurant) => restaurant.photos, { onDelete: "CASCADE" })
     restaurant: restaurant
 }

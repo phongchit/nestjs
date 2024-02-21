@@ -28,7 +28,7 @@ export class table {
   table_status: boolean;
 
   @Column({ nullable: true } )
-  photo: string
+  photo: string;
 
   @ManyToOne(() => zone_table, (zone_table) => zone_table.tables)
   zone: zone_table;
