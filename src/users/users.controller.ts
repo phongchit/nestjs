@@ -6,17 +6,19 @@ import {
   Request,
   Patch,
   Param,
-  Delete,
   Get,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import { createProfileDto } from './dto/create.profile.dto';
-import { profile, restaurant, table } from 'src/entities';
-import { updateProfileDto } from './dto/update.profile.dto';
+import {  restaurant } from 'src/entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { reservation } from 'src/entities/reservation.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('users')
 export class UsersController {
@@ -60,4 +62,20 @@ export class UsersController {
   ): Promise<reservation[]> {
     return this.userservice.getReservations(req.user, date);
   }
+
+  // @Post('upload')
+  // @UseInterceptors(FileInterceptor('file', {
+  //   storage: diskStorage({
+  //     destination: "./uploads", // Adjust the destination path as needed
+  //     filename(req,file, callback) {
+  //       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+  //       const extension = extname(file.originalname);
+  //       const filename = `${uniqueSuffix}${extension}`;
+  //       callback(null, filename);
+  //     },
+  //   }),
+  // }))
+  // async upload(@UploadedFile() file) {
+  //   return { message: 'File uploaded successfully', filename: file.filename };
+  // }
 }
