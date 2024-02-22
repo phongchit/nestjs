@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class createProfileDto {
   @IsNotEmpty()
@@ -9,4 +9,5 @@ export class createProfileDto {
 
   @IsNotEmpty()
   phone_number: string;
+
 }

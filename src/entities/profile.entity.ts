@@ -23,6 +23,9 @@ export class profile {
   @Column()
   phone_number: string;
 
+  @Column({ nullable: true })
+  photo: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

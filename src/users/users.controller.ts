@@ -13,12 +13,12 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import {  restaurant } from 'src/entities';
+import {  profile, reservation, restaurant } from 'src/entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
-import { reservation } from 'src/entities/reservation.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { createProfileDto } from './dto/create.profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -63,8 +63,18 @@ export class UsersController {
     return this.userservice.getReservations(req.user, date);
   }
 
-  // @Post('upload')
-  // @UseInterceptors(FileInterceptor('file', {
+  @UseGuards(JwtAuthGuard)
+  @Post('profile')
+  async createProfile(
+      @Body() createprofiledto:createProfileDto ,
+      @Request() { user }: any,
+  ): Promise<profile> {
+      return this.userservice.createProfile(createprofiledto, user)
+  }
+
+
+  // @Post('uploads')
+  // @UseInterceptors(FileInterceptor('photo', {
   //   storage: diskStorage({
   //     destination: "./uploads", // Adjust the destination path as needed
   //     filename(req,file, callback) {
@@ -78,4 +88,45 @@ export class UsersController {
   // async upload(@UploadedFile() file) {
   //   return { message: 'File uploaded successfully', filename: file.filename };
   // }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Post('upload/photo')
+  // @UseInterceptors(FileInterceptor('photo', {
+  //   storage: diskStorage({
+  //     destination: "./uploads", // Adjust the destination path as needed
+  //     filename(req, file, callback) {
+  //       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+  //       const extension = extname(file.originalname);
+  //       const filename = `${uniqueSuffix}${extension}`;
+  //       callback(null, filename);
+  //     },
+  //   }),
+  // }))
+  // async uploadPhoto(@UploadedFile() file, @Request() req: any): Promise<{ photoPath: string }> {
+  //   const createPhotoDto: CreatePhotoDto = { photo: file };
+  //   const photoPath = await this.userservice.uploadPhoto(createPhotoDto, req.user);
+  //   return { photoPath };
+  // }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('photo', {
+    storage: diskStorage({
+      destination: "./uploads", // Adjust the destination path as needed
+      filename(req, file, callback) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const extension = extname(file.originalname);
+        const filename = `${uniqueSuffix}${extension}`;
+        callback(null, filename);
+      },
+    }),
+  }))
+  async createProfileWithPhoto(
+    @Body() createProfileDto: createProfileDto,
+    @UploadedFile() photo,
+    @Request() { user }: any,
+  ): Promise<profile> {
+    // Assuming you have a method in your userService to create a profile with a photo
+    return this.userservice.createProfileWithPhoto(createProfileDto, photo, user);
+  }
 }
