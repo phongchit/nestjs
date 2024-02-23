@@ -16,6 +16,7 @@ import { Repository } from 'typeorm';
 import { createProfileDto } from './dto/create.profile.dto';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { reservation } from 'src/entities/reservation.entity';
+import { updateProfileDto } from './dto/update.profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -226,97 +227,73 @@ export class UsersService {
   }
 
   async createProfile(
-    createprofiledto: createProfileDto,
-    user: user_clients,
+    createProfileDto: createProfileDto,
+    photo: any,
+    user: any,
   ): Promise<profile> {
-    const { first_name, last_name, phone_number } = createprofiledto;
-
-    const profile = this.profileRepository.create({
-      first_name,
-      last_name,
-      phone_number,
-      user,
-    });
-
-    try {
-      await this.profileRepository.save(profile);
-      return profile;
-    } catch (e) {
-      throw new ConflictException({
-        message: ['Somethings wrong I can feel it.'],
-      });
-    }
-  }
-
-  async createProfileWithPhoto(createProfileDto: createProfileDto, photo: any, user: any): Promise<profile> {
-    // Handle profile creation logic
     const { first_name, last_name, phone_number } = createProfileDto;
     const profile = this.profileRepository.create({
       first_name,
       last_name,
       phone_number,
       user,
-      photo: photo.filename, // Assuming 'photo' is the field name and 'filename' is the property with the saved filename
+      photo: photo.filename,
     });
-
-    // Save profile to the database
     await this.profileRepository.save(profile);
 
     return profile;
   }
+  async getProfile(user: user_clients): Promise<profile> {
+    try {
+      const profile = await this.profileRepository.findOne({
+        where: { user },
+      });
+      if (!profile) {
+        throw new NotFoundException();
+      }
+      return profile;
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+  async updateProfile(
+    updateprofileDto: updateProfileDto,
+    user: user_clients,
+  ): Promise<profile> {
+    const { first_name, last_name, phone_number } = updateprofileDto;
+    const existingProfile = await this.profileRepository.findOne({
+      where: { user },
+    });
 
-  // async uploadPhoto(
-  //   createPhotoDto: CreatePhotoDto,
-  //   user: user_clients,
-  // ): Promise<string> {
-  //   try {
-  //     const file = createPhotoDto.photo;
-  //     if (!file) {
-  //       throw new ConflictException('No file provided for upload.');
-  //     }
+    if (!existingProfile) {
+      throw new NotFoundException('Profile not found.');
+    }
 
-  //     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-  //     const extension = extname(file.originalname);
-  //     const filename = `${uniqueSuffix}${extension}`;
+    existingProfile.first_name = first_name || existingProfile.first_name;
+    existingProfile.last_name = last_name || existingProfile.last_name;
+    existingProfile.phone_number = phone_number || existingProfile.phone_number;
 
-  //     const destination = './uploads'; // Adjust the destination path as needed
+    try {
+      await this.profileRepository.save(existingProfile);
+      return existingProfile;
+    } catch (e) {
+      throw new ConflictException();
+    }
+  }
 
-  //     // Save the file to the specified destination
-  //     await this.saveFile(file, destination, filename);
+  async deleteProfile(user: user_clients): Promise<void> {
+    const existingProfile = await this.profileRepository.findOne({
+      where: { user },
+    });
 
-  //     // Assuming you want to save the file path in the user's profile
-  //     const photoPath = `${destination}/${filename}`;
+    if (!existingProfile) {
+      throw new NotFoundException('Profile not found.');
+    }
 
-  //     // Update user's profile with the photo path
-  //     await this.updateUserProfile(user, { photo: photoPath });
-
-  //     return photoPath;
-  //   } catch (error) {
-  //     throw new ConflictException('Error uploading photo.');
-  //   }
-  // }
-
-  // private async saveFile(
-  //   file: any,
-  //   destination: string,
-  //   filename: string,
-  // ): Promise<void> {
-  //   // Implementation for saving the file (similar to what you already have)
-  // }
-
-  // private async updateUserProfile(
-  //   user: user_clients,
-  //   data: Partial<profile>,
-  // ): Promise<void> {
-  //   try {
-  //     const userProfile = await this.profileRepository.findOne({
-  //       where: { user },
-  //     });
-  //     if (userProfile) {
-  //       await this.profileRepository.update(userProfile.id, data);
-  //     }
-  //   } catch (error) {
-  //     throw new ConflictException('Error updating user profile.');
-  //   }
-  // }
+    try {
+      await this.profileRepository.remove(existingProfile);
+    } catch (e) {
+      throw new ConflictException();
+    }
+  }
 }
