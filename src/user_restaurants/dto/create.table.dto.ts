@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
-import { table } from 'console';
 
 export class CreateTableDto {
   @IsNotEmpty()

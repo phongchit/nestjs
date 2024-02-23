@@ -23,11 +23,6 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { createProfileDto } from './dto/create.profile.dto';
 import { extname } from 'path';
-
-interface FileParams {
-  fileName: string;
-}
-
 @Controller('users')
 export class UsersController {
   constructor(private userservice: UsersService) {}
