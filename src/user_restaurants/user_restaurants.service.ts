@@ -7,7 +7,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { restaurant, table, user_restaurant, zone_table } from 'src/entities';
+import {
+  restaurant,
+  restaurantPhotos,
+  table,
+  user_restaurant,
+  zone_table,
+} from 'src/entities';
 import { Repository } from 'typeorm';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
 import { CreateZoneDto } from './dto/create.zone.dto';
@@ -28,6 +34,8 @@ export class UserRestaurantsService {
     private tableRepository: Repository<table>,
     @InjectRepository(reservation)
     private reservationRepository: Repository<reservation>,
+    @InjectRepository(restaurantPhotos)
+    private restaurantPhotosRepository: Repository<restaurantPhotos>,
   ) {}
 
   async findOne(username: string): Promise<user_restaurant | undefined> {
@@ -43,6 +51,7 @@ export class UserRestaurantsService {
     });
     return restaurant;
   }
+
   private async checkUser(userId: string) {
     const user = await this.adminRepository.findOne({
       where: { id: userId },
@@ -60,12 +69,15 @@ export class UserRestaurantsService {
 
   async createRestaurant(
     createRestaurantDto: CreateRestaurantDto,
-    @Request() req,
+    req: any,
+    photos: Array<Express.Multer.File>,
   ): Promise<restaurant> {
     const { rest_name, rest_description, rest_phone_number } =
       createRestaurantDto;
 
-    const user = await this.checkUser(req.user.id);
+    const user = await this.adminRepository.findOne({
+      where: { id: req.user.id },
+    });
 
     if (user.adminRestaurant) {
       throw new BadRequestException('User must have 1 Restaurant.');
@@ -89,6 +101,13 @@ export class UserRestaurantsService {
       const createdRestaurant =
         await this.restaurantRepository.save(newRestaurant);
 
+      const processedPhotos = await this.processAndSavePhotos(
+        createdRestaurant,
+        photos,
+      );
+
+      createdRestaurant.photos = processedPhotos;
+
       const admin = await this.adminRepository.findOne({
         where: { id: req.user.id },
       });
@@ -105,6 +124,26 @@ export class UserRestaurantsService {
       console.error('Error when creating restaurant:', error);
       throw new ConflictException('Error when creating restaurant');
     }
+  }
+
+  private async processAndSavePhotos(
+    restaurant: restaurant,
+    photos: Array<Express.Multer.File>,
+  ): Promise<restaurantPhotos[]> {
+    const processedPhotos: restaurantPhotos[] = [];
+
+    for (const photo of photos) {
+      const newPhoto = this.restaurantPhotosRepository.create({
+        name: photo.filename,
+        restaurant,
+      });
+
+      const savedPhoto = await this.restaurantPhotosRepository.save(newPhoto);
+
+      processedPhotos.push(savedPhoto);
+    }
+
+    return processedPhotos;
   }
 
   async getRestaurant(req: any): Promise<restaurant> {
@@ -270,6 +309,7 @@ export class UserRestaurantsService {
     createTableDto: CreateTableDto,
     @Request() req,
     zoneId: string,
+    photo: any,
   ): Promise<table> {
     const { table_number, table_capacity, table_describe } = createTableDto;
 
@@ -303,6 +343,7 @@ export class UserRestaurantsService {
         table_capacity,
         table_describe,
         zone,
+        photo: photo.filename,
       });
 
       return await this.tableRepository.save(newTable);

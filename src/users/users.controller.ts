@@ -71,7 +71,7 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: './profile',
         filename(req, file, callback) {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -84,8 +84,8 @@ export class UsersController {
   )
   async createProfile(
     @Body() createProfileDto: createProfileDto,
-    @UploadedFile() photo,
     @Request() req: any,
+    @UploadedFile() photo: Express.Multer.File,
   ): Promise<profile> {
     return this.userservice.createProfile(createProfileDto, photo, req.user);
   }
@@ -114,7 +114,7 @@ export class UsersController {
       if (!profile.photo) {
         throw new NotFoundException();
       }
-      res.sendFile(path.join(__dirname, '../../uploads/' + profile.photo));
+      res.sendFile(path.join(__dirname, '../../profile/' + profile.photo));
     } catch (error) {
       res.status(404).json({ message: 'Photo not found' });
     }

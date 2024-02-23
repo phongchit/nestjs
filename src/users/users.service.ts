@@ -229,7 +229,7 @@ export class UsersService {
 
   async createProfile(
     createProfileDto: createProfileDto,
-    photo: any,
+    photo: Express.Multer.File,
     user: user_clients,
   ): Promise<profile> {
     const { first_name, last_name, phone_number } = createProfileDto;
@@ -294,7 +294,7 @@ export class UsersService {
         throw new NotFoundException('Profile or photo not found');
       }
 
-      const photoPath = path.join(__dirname, '../../uploads/', profile.photo);
+      const photoPath = path.join(__dirname, '../../profile/', profile.photo);
       fs.unlinkSync(photoPath);
       await this.profileRepository.remove(profile);
     } catch (error) {

@@ -8,6 +8,9 @@ import {
   Get,
   Patch,
   Query,
+  UploadedFile,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -22,6 +25,9 @@ import {
 import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('restaurants')
 export class UserRestaurantsController {
@@ -29,13 +35,29 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create/restaurant')
+  @UseInterceptors(
+    FilesInterceptor('photos', 5, {
+      storage: diskStorage({
+        destination: './restaurants',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const extension = extname(file.originalname);
+          const filename = `${uniqueSuffix}${extension}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
   async createRestaurant(
     @Body() createRestaurantDto: CreateRestaurantDto,
+    @UploadedFiles() photos: Array<Express.Multer.File>,
     @Request() req,
   ): Promise<restaurant> {
     return this.userRestaurantsService.createRestaurant(
       createRestaurantDto,
       req,
+      photos,
     );
   }
 
@@ -74,12 +96,32 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create/:zoneId/table')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './tables',
+        filename(req, file, callback) {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const extension = extname(file.originalname);
+          const filename = `${uniqueSuffix}${extension}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
   async createTable(
     @Body() createTableDto: CreateTableDto,
     @Request() req,
     @Param('zoneId') zoneId: string,
+    @UploadedFile() photo: Express.Multer.File,
   ): Promise<table> {
-    return this.userRestaurantsService.createTable(createTableDto, req, zoneId);
+    return this.userRestaurantsService.createTable(
+      createTableDto,
+      req,
+      zoneId,
+      photo,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
