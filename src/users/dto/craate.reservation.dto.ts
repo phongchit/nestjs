@@ -1,13 +1,13 @@
-import { IsUUID, IsDateString, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsNotEmpty } from 'class-validator';
 
 export class CreateReservationDto {
-  @IsNotEmpty({ message: 'Table is required.' })
+  @IsNotEmpty()
   tableId: string;
 
-  @IsDateString({}, { message: 'Invalid date format for reser_date.' })
-  @IsNotEmpty({ message: 'Reservation date is required.' })
+  @IsDateString()
+  @IsNotEmpty()
   reser_date: string;
 
-  @IsNotEmpty({ message: 'Reservation time is required.' })
+  @IsNotEmpty()
   reser_time: string;
 }

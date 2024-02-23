@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -17,6 +16,8 @@ import { createProfileDto } from './dto/create.profile.dto';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { reservation } from 'src/entities/reservation.entity';
 import { updateProfileDto } from './dto/update.profile.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UsersService {
@@ -229,7 +230,7 @@ export class UsersService {
   async createProfile(
     createProfileDto: createProfileDto,
     photo: any,
-    user: any,
+    user: user_clients,
   ): Promise<profile> {
     const { first_name, last_name, phone_number } = createProfileDto;
     const profile = this.profileRepository.create({
@@ -243,6 +244,7 @@ export class UsersService {
 
     return profile;
   }
+
   async getProfile(user: user_clients): Promise<profile> {
     try {
       const profile = await this.profileRepository.findOne({
@@ -256,6 +258,7 @@ export class UsersService {
       throw new NotFoundException();
     }
   }
+
   async updateProfile(
     updateprofileDto: updateProfileDto,
     user: user_clients,
@@ -282,18 +285,20 @@ export class UsersService {
   }
 
   async deleteProfile(user: user_clients): Promise<void> {
-    const existingProfile = await this.profileRepository.findOne({
-      where: { user },
-    });
-
-    if (!existingProfile) {
-      throw new NotFoundException('Profile not found.');
-    }
-
     try {
-      await this.profileRepository.remove(existingProfile);
-    } catch (e) {
-      throw new ConflictException();
+      const profile = await this.profileRepository.findOne({
+        where: { user },
+      });
+
+      if (!profile || !profile.photo) {
+        throw new NotFoundException('Profile or photo not found');
+      }
+
+      const photoPath = path.join(__dirname, '../../uploads/', profile.photo);
+      fs.unlinkSync(photoPath);
+      await this.profileRepository.remove(profile);
+    } catch (error) {
+      throw error;
     }
   }
 }

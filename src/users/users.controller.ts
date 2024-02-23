@@ -90,36 +90,31 @@ export class UsersController {
   async createProfile(
     @Body() createProfileDto: createProfileDto,
     @UploadedFile() photo,
-    @Request() { user }: any,
+    @Request() req: any,
   ): Promise<profile> {
-    return this.userservice.createProfile(createProfileDto, photo, user);
+    return this.userservice.createProfile(createProfileDto, photo, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() { user }: any): Promise<profile> {
-    return this.userservice.getProfile(user);
+  getProfile(@Request() req: any): Promise<profile> {
+    return this.userservice.getProfile(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   async updateProfile(
     @Body() updateProfileDto: createProfileDto,
-    @Request() { user }: any,
+    @Request() req: any,
   ): Promise<profile> {
-    return this.userservice.updateProfile(updateProfileDto, user);
+    return this.userservice.updateProfile(updateProfileDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('profile')
-  async deleteProfile(@Request() { user }: any): Promise<void> {
-    return this.userservice.deleteProfile(user);
-  }
-
   @Get('profile/photo')
-  async getProfilePhoto(@Request() { user }, @Res() res: any): Promise<void> {
+  async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
     try {
-      const profile = await this.userservice.getProfile(user);
+      const profile = await this.userservice.getProfile(req.user);
 
       if (!profile.photo) {
         throw new NotFoundException();
@@ -128,5 +123,11 @@ export class UsersController {
     } catch (error) {
       res.status(404).json({ message: 'Photo not found' });
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('profile')
+  async deleteProfile(@Request() req: any) {
+    return this.userservice.deleteProfile(req.user);
   }
 }
