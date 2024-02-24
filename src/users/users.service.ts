@@ -173,7 +173,7 @@ export class UsersService {
       const restaurants = await this.restaurantRepository.find();
       return restaurants;
     } catch (error) {
-      throw error;
+      throw new error();
     }
   }
 
@@ -192,8 +192,6 @@ export class UsersService {
           id: zone.id,
           zone_name: zone.zone_name,
           zone_descripe: zone.zone_descripe,
-          createdAt: zone.createdAt,
-          updatedAt: zone.updatedAt,
           tables: zone.tables,
         }),
       );

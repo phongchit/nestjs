@@ -28,6 +28,7 @@ import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UpdateZoneDto } from './dto/update.zone.dto';
 
 @Controller('restaurants')
 export class UserRestaurantsController {
@@ -92,6 +93,20 @@ export class UserRestaurantsController {
   @Get('zones')
   async getZones(@Request() req: any) {
     return this.userRestaurantsService.getZones(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('update/:zoneId/zone')
+  async updateProfile(
+    @Body() updatezonedto: UpdateZoneDto,
+    @Param('zoneId') zoneId: string,
+    @Request() req: any,
+  ): Promise<zone_table> {
+    return this.userRestaurantsService.updateZone(
+      updatezonedto,
+      req.user,
+      zoneId,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

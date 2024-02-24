@@ -32,7 +32,10 @@ export class profile {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @OneToOne(() => user_clients)
+  @OneToOne(() => user_clients, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   user: user_clients;
 }

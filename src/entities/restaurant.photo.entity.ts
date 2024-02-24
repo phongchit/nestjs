@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { restaurant } from './restaurant.entity';
-import { Exclude } from 'class-transformer';
 
 @Entity()
 export class restaurantPhotos {
@@ -13,6 +12,5 @@ export class restaurantPhotos {
   @ManyToOne(() => restaurant, (restaurant) => restaurant.photos, {
     onDelete: 'CASCADE',
   })
-  @Exclude()
   restaurant: restaurant;
 }

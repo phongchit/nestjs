@@ -30,7 +30,10 @@ export class table {
   @Column({ nullable: true })
   photo: string;
 
-  @ManyToOne(() => zone_table, (zone_table) => zone_table.tables)
+  @ManyToOne(() => zone_table, (zone_table) => zone_table.tables, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   zone: zone_table;
 
   @OneToMany(() => reservation, (reservation) => reservation.table)

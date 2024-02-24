@@ -24,7 +24,10 @@ export class zone_table {
   @OneToMany(() => table, (table) => table.zone)
   tables: table[];
 
-  @ManyToOne(() => restaurant, (rest) => rest.zones)
+  @ManyToOne(() => restaurant, (rest) => rest.zones, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   restaurant: restaurant;
 
   @CreateDateColumn({ type: 'timestamptz' })

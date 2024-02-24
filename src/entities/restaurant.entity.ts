@@ -26,7 +26,6 @@ export class restaurant {
 
   @OneToMany(() => restaurantPhotos, (photo) => photo.restaurant, {
     cascade: true,
-    eager: true,
   })
   photos: restaurantPhotos[];
 

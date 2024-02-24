@@ -20,6 +20,7 @@ import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
 import { reservation } from 'src/entities/reservation.entity';
+import { UpdateZoneDto } from './dto/update.zone.dto';
 
 @Injectable()
 export class UserRestaurantsService {
@@ -211,12 +212,14 @@ export class UserRestaurantsService {
         throw new NotFoundException('Restaurant not found.');
       }
 
-      const existingRestaurant = await this.findOnerestaurant(rest_name);
+      if (rest_name) {
+        const existingRestaurant = await this.findOnerestaurant(rest_name);
 
-      if (existingRestaurant) {
-        throw new ConflictException(
-          'Restaurant with the same name already exists',
-        );
+        if (existingRestaurant) {
+          throw new ConflictException(
+            'Restaurant with the same name already exists',
+          );
+        }
       }
 
       if (rest_name) {
@@ -275,8 +278,37 @@ export class UserRestaurantsService {
 
       return await this.zoneRepository.save(newZone);
     } catch (error) {
-      console.error('Error when creating zone:', error);
       throw new ConflictException('Error when creating zone');
+    }
+  }
+
+  async updateZone(
+    updatezonedto: UpdateZoneDto,
+    user: user_restaurant,
+    zoneId: string,
+  ): Promise<zone_table> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
+    }
+    const { zone_name, zone_descripe } = updatezonedto;
+    const existingZone = await this.zoneRepository.findOne({
+      where: { id: zoneId },
+    });
+
+    if (!existingZone) {
+      throw new NotFoundException('Profile not found.');
+    }
+
+    existingZone.zone_descripe = zone_descripe || existingZone.zone_descripe;
+    existingZone.zone_name = zone_name || existingZone.zone_name;
+
+    try {
+      await this.zoneRepository.save(existingZone);
+      return existingZone;
+    } catch (e) {
+      throw new ConflictException();
     }
   }
 
