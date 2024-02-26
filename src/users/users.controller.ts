@@ -13,6 +13,8 @@ import {
   UseInterceptors,
   NotFoundException,
   Res,
+  ParseFilePipe,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -66,28 +68,6 @@ export class UsersController {
     return this.userservice.getReservations(req.user, date);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('photo')
-  @UseInterceptors(
-    FileInterceptor('photo', {
-      storage: diskStorage({
-        destination: './profile',
-        filename(req, file, callback) {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const extension = extname(file.originalname);
-          const filename = `${uniqueSuffix}${extension}`;
-          callback(null, filename);
-        },
-      }),
-    }),
-  )
-  async uploadPhoto(
-    @Request() req: any,
-    @UploadedFile() photo: Express.Multer.File,
-  ): Promise<profile> {
-    return this.userservice.UploadProfilePhoto(photo, req.user);
-  }
 
   @UseGuards(JwtAuthGuard)
   @Patch('photo')
@@ -107,27 +87,19 @@ export class UsersController {
   )
   async updatePhoto(
     @Request() req: any,
-    @UploadedFile() photo: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
+    ) photo: Express.Multer.File,
   ): Promise<profile> {
     return this.userservice.updateProfilephoto(req.user, photo);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('profile')
-  // @UseInterceptors(
-  //   FileInterceptor('photo', {
-  //     storage: diskStorage({
-  //       destination: './profile',
-  //       filename(req, file, callback) {
-  //         const uniqueSuffix =
-  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
-  //         const extension = extname(file.originalname);
-  //         const filename = `${uniqueSuffix}${extension}`;
-  //         callback(null, filename);
-  //       },
-  //     }),
-  //   }),
-  // )
   async createProfile(
     @Body() createProfileDto: createProfileDto,
     @Request() req: any,
@@ -169,5 +141,11 @@ export class UsersController {
   @Delete('profile')
   async deleteProfile(@Request() req: any) {
     return this.userservice.deleteProfile(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('photo')
+  async deletePhoto(@Request() req: any) {
+    return this.userservice.deletePhoto(req.user);
   }
 }

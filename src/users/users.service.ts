@@ -178,7 +178,7 @@ export class UsersService {
   }
 
   async getZoneByRestaurantId(restaurantId: string): Promise<any> {
-    try {
+
       const selectedRestaurant = await this.restaurantRepository.findOneOrFail({
         where: { id: restaurantId },
         relations: ['zones', 'zones.tables'],
@@ -197,9 +197,6 @@ export class UsersService {
       );
 
       return zonesWithTables;
-    } catch (error) {
-      throw error;
-    }
   }
 
   async getReservations(
@@ -236,25 +233,6 @@ export class UsersService {
       phone_number,
       user,
     });
-    await this.profileRepository.save(profile);
-
-    return profile;
-  }
-
-  async UploadProfilePhoto(
-    photo: Express.Multer.File,
-    user: user_clients,
-  ): Promise<profile> {
-    const profile = await this.profileRepository.findOne({
-      where: { user },
-    });
-
-    if (!profile) {
-      throw new NotFoundException('Profile not found');
-    }
-
-    profile.photo = photo.filename;
-
     await this.profileRepository.save(profile);
 
     return profile;
@@ -326,6 +304,22 @@ export class UsersService {
 
       throw new ConflictException();
     }
+  }
+
+  async deletePhoto(user: user_clients): Promise<void> {
+      const profile = await this.profileRepository.findOne({
+        where: { user },
+      });
+
+      if (!profile) {
+        throw new NotFoundException('Profile not found');
+      }
+      if (profile.photo) {
+        const photoPath = path.join(__dirname, '../../profile/', profile.photo);
+        fs.unlinkSync(photoPath);
+        profile.photo = null
+        this.profileRepository.save(profile)
+      }
   }
 
   async deleteProfile(user: user_clients): Promise<void> {
