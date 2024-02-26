@@ -227,7 +227,6 @@ export class UsersService {
 
   async createProfile(
     createProfileDto: createProfileDto,
-    photo: Express.Multer.File,
     user: user_clients,
   ): Promise<profile> {
     const { first_name, last_name, phone_number } = createProfileDto;
@@ -236,8 +235,26 @@ export class UsersService {
       last_name,
       phone_number,
       user,
-      photo: photo.filename,
     });
+    await this.profileRepository.save(profile);
+
+    return profile;
+  }
+
+  async UploadProfilePhoto(
+    photo: Express.Multer.File,
+    user: user_clients,
+  ): Promise<profile> {
+    const profile = await this.profileRepository.findOne({
+      where: { user },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    profile.photo = photo.filename;
+
     await this.profileRepository.save(profile);
 
     return profile;
@@ -282,18 +299,48 @@ export class UsersService {
     }
   }
 
+  async updateProfilephoto(
+    user: user_clients,
+    photo: Express.Multer.File,
+  ): Promise<profile> {
+    const Profile = await this.profileRepository.findOne({
+      where: { user },
+    });
+
+    if (!Profile) {
+      throw new NotFoundException('Profile not found.');
+    }
+
+    if (Profile.photo) {
+      const photoPath = path.join(__dirname, '../../profile/', Profile.photo);
+      fs.unlinkSync(photoPath);
+    }
+
+    Profile.photo = photo.filename;
+
+    try {
+      await this.profileRepository.save(Profile);
+      return Profile;
+    } catch (error) {
+      console.error('Error saving updated profile:', error);
+
+      throw new ConflictException();
+    }
+  }
+
   async deleteProfile(user: user_clients): Promise<void> {
     try {
       const profile = await this.profileRepository.findOne({
         where: { user },
       });
 
-      if (!profile || !profile.photo) {
-        throw new NotFoundException('Profile or photo not found');
+      if (!profile) {
+        throw new NotFoundException('Profile not found');
       }
-
-      const photoPath = path.join(__dirname, '../../profile/', profile.photo);
-      fs.unlinkSync(photoPath);
+      if (profile.photo) {
+        const photoPath = path.join(__dirname, '../../profile/', profile.photo);
+        fs.unlinkSync(photoPath);
+      }
       await this.profileRepository.remove(profile);
     } catch (error) {
       throw error;

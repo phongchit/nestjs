@@ -7,7 +7,7 @@ export class restaurantPhotos {
   id: string;
 
   @Column()
-  name: string;
+  photo_name: string;
 
   @ManyToOne(() => restaurant, (restaurant) => restaurant.photos, {
     onDelete: 'CASCADE',

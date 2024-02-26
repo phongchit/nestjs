@@ -135,7 +135,7 @@ export class UserRestaurantsService {
 
     for (const photo of photos) {
       const newPhoto = this.restaurantPhotosRepository.create({
-        name: photo.filename,
+        photo_name: photo.filename,
         restaurant,
       });
 

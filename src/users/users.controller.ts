@@ -67,7 +67,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('upload')
+  @Post('photo')
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
@@ -82,12 +82,57 @@ export class UsersController {
       }),
     }),
   )
-  async createProfile(
-    @Body() createProfileDto: createProfileDto,
+  async uploadPhoto(
     @Request() req: any,
     @UploadedFile() photo: Express.Multer.File,
   ): Promise<profile> {
-    return this.userservice.createProfile(createProfileDto, photo, req.user);
+    return this.userservice.UploadProfilePhoto(photo, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('photo')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './profile',
+        filename(req, file, callback) {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const extension = extname(file.originalname);
+          const filename = `${uniqueSuffix}${extension}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
+  async updatePhoto(
+    @Request() req: any,
+    @UploadedFile() photo: Express.Multer.File,
+  ): Promise<profile> {
+    return this.userservice.updateProfilephoto(req.user, photo);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('profile')
+  // @UseInterceptors(
+  //   FileInterceptor('photo', {
+  //     storage: diskStorage({
+  //       destination: './profile',
+  //       filename(req, file, callback) {
+  //         const uniqueSuffix =
+  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
+  //         const extension = extname(file.originalname);
+  //         const filename = `${uniqueSuffix}${extension}`;
+  //         callback(null, filename);
+  //       },
+  //     }),
+  //   }),
+  // )
+  async createProfile(
+    @Body() createProfileDto: createProfileDto,
+    @Request() req: any,
+  ): Promise<profile> {
+    return this.userservice.createProfile(createProfileDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)

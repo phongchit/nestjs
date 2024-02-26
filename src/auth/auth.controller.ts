@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpUserDto } from './dto/signup.user.dto';
 import { user_clients, user_restaurant } from 'src/entities';
@@ -17,13 +10,11 @@ export class AuthController {
   constructor(private readonly authservice: AuthService) {}
 
   @Post('signup/user')
-  @HttpCode(200)
   async signupUser(@Body() signupDto: SignUpUserDto): Promise<user_clients> {
     return this.authservice.signupUser(signupDto);
   }
 
   @Post('signup/restaurant')
-  @HttpCode(200)
   async signupRestaurant(
     @Body() signupDto: SignUpUserDto,
   ): Promise<user_restaurant> {
@@ -31,7 +22,6 @@ export class AuthController {
   }
 
   @UseGuards(LocalUserAuthGuard)
-  @HttpCode(200)
   @Post('signin/user')
   async login(@Request() req) {
     return this.authservice.loginUser(req.user);
