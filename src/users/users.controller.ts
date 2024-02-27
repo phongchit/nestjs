@@ -68,7 +68,6 @@ export class UsersController {
     return this.userservice.getReservations(req.user, date);
   }
 
-
   @UseGuards(JwtAuthGuard)
   @Patch('photo')
   @UseInterceptors(
@@ -89,11 +88,10 @@ export class UsersController {
     @Request() req: any,
     @UploadedFile(
       new ParseFilePipe({
-        validators: [
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-        ],
+        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
       }),
-    ) photo: Express.Multer.File,
+    )
+    photo: Express.Multer.File,
   ): Promise<profile> {
     return this.userservice.updateProfilephoto(req.user, photo);
   }

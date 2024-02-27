@@ -178,25 +178,24 @@ export class UsersService {
   }
 
   async getZoneByRestaurantId(restaurantId: string): Promise<any> {
+    const selectedRestaurant = await this.restaurantRepository.findOneOrFail({
+      where: { id: restaurantId },
+      relations: ['zones', 'zones.tables'],
+    });
 
-      const selectedRestaurant = await this.restaurantRepository.findOneOrFail({
-        where: { id: restaurantId },
-        relations: ['zones', 'zones.tables'],
-      });
+    if (!selectedRestaurant) {
+      throw new NotFoundException('Restaurant not found.');
+    }
+    const zonesWithTables = selectedRestaurant.zones.map(
+      (zone: zone_table) => ({
+        id: zone.id,
+        zone_name: zone.zone_name,
+        zone_descripe: zone.zone_descripe,
+        tables: zone.tables,
+      }),
+    );
 
-      if (!selectedRestaurant) {
-        throw new NotFoundException('Restaurant not found.');
-      }
-      const zonesWithTables = selectedRestaurant.zones.map(
-        (zone: zone_table) => ({
-          id: zone.id,
-          zone_name: zone.zone_name,
-          zone_descripe: zone.zone_descripe,
-          tables: zone.tables,
-        }),
-      );
-
-      return zonesWithTables;
+    return zonesWithTables;
   }
 
   async getReservations(
@@ -307,19 +306,19 @@ export class UsersService {
   }
 
   async deletePhoto(user: user_clients): Promise<void> {
-      const profile = await this.profileRepository.findOne({
-        where: { user },
-      });
+    const profile = await this.profileRepository.findOne({
+      where: { user },
+    });
 
-      if (!profile) {
-        throw new NotFoundException('Profile not found');
-      }
-      if (profile.photo) {
-        const photoPath = path.join(__dirname, '../../profile/', profile.photo);
-        fs.unlinkSync(photoPath);
-        profile.photo = null
-        this.profileRepository.save(profile)
-      }
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+    if (profile.photo) {
+      const photoPath = path.join(__dirname, '../../profile/', profile.photo);
+      fs.unlinkSync(photoPath);
+      profile.photo = null;
+      this.profileRepository.save(profile);
+    }
   }
 
   async deleteProfile(user: user_clients): Promise<void> {
