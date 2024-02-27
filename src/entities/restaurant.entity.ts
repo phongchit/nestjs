@@ -25,7 +25,7 @@ export class restaurant {
   admins: user_restaurant[];
 
   @OneToMany(() => restaurantPhotos, (photo) => photo.restaurant, {})
-  photos: restaurantPhotos;
+  photos: restaurantPhotos[];
 
   @Column()
   rest_name: string;

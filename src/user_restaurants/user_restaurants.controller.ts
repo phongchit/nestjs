@@ -46,14 +46,14 @@ export class UserRestaurantsController {
   ): Promise<restaurant> {
     return this.userRestaurantsService.createRestaurant(
       createRestaurantDto,
-      req,
+      req.user,
     );
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('upload/photo')
   @UseInterceptors(
-    FilesInterceptor('photos', 1, {
+    FilesInterceptor('photos', 3, {
       storage: diskStorage({
         destination: './restaurants',
         filename: (req, file, callback) => {
@@ -75,13 +75,13 @@ export class UserRestaurantsController {
     photos: Array<Express.Multer.File>,
     @Request() req,
   ): Promise<restaurant> {
-    return this.userRestaurantsService.uploadPhotos(req, photos);
+    return this.userRestaurantsService.uploadPhotos(req.user, photos);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   async getRestaurant(@Request() req: any): Promise<restaurant> {
-    return this.userRestaurantsService.getRestaurant(req);
+    return this.userRestaurantsService.getRestaurant(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -92,7 +92,7 @@ export class UserRestaurantsController {
   ): Promise<restaurant> {
     return this.userRestaurantsService.updateRestaurant(
       updateRestaurantDto,
-      req,
+      req.user,
     );
   }
 
@@ -102,13 +102,13 @@ export class UserRestaurantsController {
     @Body() createZoneDto: CreateZoneDto,
     @Request() req,
   ): Promise<zone_table> {
-    return this.userRestaurantsService.createZone(createZoneDto, req);
+    return this.userRestaurantsService.createZone(createZoneDto, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('zones')
   async getZones(@Request() req: any) {
-    return this.userRestaurantsService.getZones(req.user.id);
+    return this.userRestaurantsService.getZones(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -208,7 +208,7 @@ export class UserRestaurantsController {
   @UseGuards(JwtAuthGuard)
   @Get('restaurant/photo')
   async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
-    const photos = await this.userRestaurantsService.getPhoto(req);
+    const photos = await this.userRestaurantsService.getPhoto(req.user);
 
     const photoFileName = photos[0].photo_name;
     console.log(photoFileName);
