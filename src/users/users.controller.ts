@@ -124,12 +124,8 @@ export class UsersController {
   @Get('profile/photo')
   async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
     try {
-      const profile = await this.userservice.getProfile(req.user);
-
-      if (!profile.photo) {
-        throw new NotFoundException();
-      }
-      res.sendFile(path.join(__dirname, '../../profile/' + profile.photo));
+      const photoFileName = await this.userservice.getProfilePhoto(req.user.id);
+      res.sendFile(path.join(__dirname, '../../profile/' + photoFileName));
     } catch (error) {
       res.status(404).json({ message: 'Photo not found' });
     }

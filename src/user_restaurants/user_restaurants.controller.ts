@@ -11,6 +11,8 @@ import {
   UploadedFile,
   UseInterceptors,
   UploadedFiles,
+  ParseFilePipe,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -36,6 +38,18 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create/restaurant')
+  async createRestaurant(
+    @Body() createRestaurantDto: CreateRestaurantDto,
+    @Request() req,
+  ): Promise<restaurant> {
+    return this.userRestaurantsService.createRestaurant(
+      createRestaurantDto,
+      req,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('upload/photo')
   @UseInterceptors(
     FilesInterceptor('photos', 5, {
       storage: diskStorage({
@@ -50,16 +64,16 @@ export class UserRestaurantsController {
       }),
     }),
   )
-  async createRestaurant(
-    @Body() createRestaurantDto: CreateRestaurantDto,
-    @UploadedFiles() photos: Array<Express.Multer.File>,
+  async uploadRestaurantPhoto(
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+      }),
+    )
+    photos: Array<Express.Multer.File>,
     @Request() req,
   ): Promise<restaurant> {
-    return this.userRestaurantsService.createRestaurant(
-      createRestaurantDto,
-      req,
-      photos,
-    );
+    return this.userRestaurantsService.uploadPhotos(req, photos);
   }
 
   @UseGuards(JwtAuthGuard)

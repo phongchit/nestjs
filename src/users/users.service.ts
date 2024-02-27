@@ -339,4 +339,20 @@ export class UsersService {
       throw error;
     }
   }
+  async getProfilePhoto(user:user_clients): Promise<string> {
+    try {
+      const profile = await this.profileRepository.findOne({
+        where: { user: { id: user.id } },
+      });
+
+      if (!profile || !profile.photo) {
+        throw new NotFoundException('Profile or photo not found.');
+      }
+
+      return profile.photo;
+    } catch (error) {
+      console.error('Error when getting profile photo:', error);
+      throw new NotFoundException('Error when getting profile photo');
+    }
+  }
 }

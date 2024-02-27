@@ -71,17 +71,19 @@ export class UserRestaurantsService {
   async createRestaurant(
     createRestaurantDto: CreateRestaurantDto,
     req: any,
-    photos: Array<Express.Multer.File>,
   ): Promise<restaurant> {
     const { rest_name, rest_description, rest_phone_number } =
       createRestaurantDto;
 
     const user = await this.adminRepository.findOne({
       where: { id: req.user.id },
+      relations: ['adminRestaurant'],
     });
 
     if (user.adminRestaurant) {
-      throw new BadRequestException('User must have 1 Restaurant.');
+      throw new BadRequestException(
+        'User is already associated with a restaurant.',
+      );
     }
 
     const existingRestaurant = await this.findOnerestaurant(rest_name);
@@ -101,25 +103,8 @@ export class UserRestaurantsService {
     try {
       const createdRestaurant =
         await this.restaurantRepository.save(newRestaurant);
-
-      const processedPhotos = await this.processAndSavePhotos(
-        createdRestaurant,
-        photos,
-      );
-
-      createdRestaurant.photos = processedPhotos;
-
-      const admin = await this.adminRepository.findOne({
-        where: { id: req.user.id },
-      });
-
-      if (!admin) {
-        throw new NotFoundException('Admin user not found.');
-      }
-
-      admin.adminRestaurant = createdRestaurant;
-      await this.adminRepository.save(admin);
-
+      user.adminRestaurant = createdRestaurant;
+      await this.adminRepository.save(user);
       return createdRestaurant;
     } catch (error) {
       console.error('Error when creating restaurant:', error);
@@ -127,25 +112,35 @@ export class UserRestaurantsService {
     }
   }
 
-  private async processAndSavePhotos(
-    restaurant: restaurant,
+  async uploadPhotos(
+    req: any,
     photos: Array<Express.Multer.File>,
-  ): Promise<restaurantPhotos[]> {
+  ): Promise<any> {
     const processedPhotos: restaurantPhotos[] = [];
-
+    const user = await this.adminRepository.findOne({
+      where: { id: req.user.id },
+      relations: ['adminRestaurant'],
+    });
+  
+    if (!user.adminRestaurant) {
+      throw new BadRequestException('User must have a restaurant.');
+    }
+  
+    const restaurant = user.adminRestaurant;
+  
     for (const photo of photos) {
       const newPhoto = this.restaurantPhotosRepository.create({
         photo_name: photo.filename,
         restaurant,
       });
-
+  
       const savedPhoto = await this.restaurantPhotosRepository.save(newPhoto);
-
+  
       processedPhotos.push(savedPhoto);
     }
-
+  
     return processedPhotos;
-  }
+  }  
 
   async getRestaurant(req: any): Promise<restaurant> {
     try {
@@ -157,7 +152,7 @@ export class UserRestaurantsService {
 
       const user = await this.adminRepository.findOne({
         where: { id: req.user.id },
-        relations: ['adminRestaurant'],
+        relations: ['adminRestaurant', 'adminRestaurant.photos'],
       });
 
       if (!user || !user.adminRestaurant) {
@@ -173,12 +168,6 @@ export class UserRestaurantsService {
       return restaurant;
     } catch (error) {
       console.error('Error when getting restaurant:', error);
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
       throw new NotFoundException('Error when getting restaurant');
     }
   }

@@ -25,7 +25,6 @@ export class restaurant {
   admins: user_restaurant[];
 
   @OneToMany(() => restaurantPhotos, (photo) => photo.restaurant, {
-    cascade: true,
   })
   photos: restaurantPhotos[];
 
