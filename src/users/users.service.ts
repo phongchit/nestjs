@@ -339,7 +339,7 @@ export class UsersService {
       throw error;
     }
   }
-  async getProfilePhoto(user:user_clients): Promise<string> {
+  async getProfilePhoto(user: user_clients): Promise<string> {
     try {
       const profile = await this.profileRepository.findOne({
         where: { user: { id: user.id } },

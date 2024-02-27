@@ -13,6 +13,7 @@ import {
   UploadedFiles,
   ParseFilePipe,
   FileTypeValidator,
+  Res,
 } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -29,8 +30,9 @@ import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import * as path from 'path';
 import { UpdateZoneDto } from './dto/update.zone.dto';
+import { extname } from 'path';
 
 @Controller('restaurants')
 export class UserRestaurantsController {
@@ -51,7 +53,7 @@ export class UserRestaurantsController {
   @UseGuards(JwtAuthGuard)
   @Patch('upload/photo')
   @UseInterceptors(
-    FilesInterceptor('photos', 5, {
+    FilesInterceptor('photos', 1, {
       storage: diskStorage({
         destination: './restaurants',
         filename: (req, file, callback) => {
@@ -196,10 +198,20 @@ export class UserRestaurantsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('tables/:tableId/reservations') // Define your route
+  @Get('tables/:tableId/reservations')
   async getReservationsByTableId(
     @Param('tableId') tableId: string,
   ): Promise<reservation[]> {
     return this.userRestaurantsService.getReservationsByTableId(tableId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('restaurant/photo')
+  async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
+    const photos = await this.userRestaurantsService.getPhoto(req);
+
+    const photoFileName = photos[0].photo_name;
+    console.log(photoFileName);
+    res.sendFile(path.join(__dirname, '../../restaurants/' + photoFileName));
   }
 }

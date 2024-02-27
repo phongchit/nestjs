@@ -121,26 +121,26 @@ export class UserRestaurantsService {
       where: { id: req.user.id },
       relations: ['adminRestaurant'],
     });
-  
+
     if (!user.adminRestaurant) {
       throw new BadRequestException('User must have a restaurant.');
     }
-  
+
     const restaurant = user.adminRestaurant;
-  
+
     for (const photo of photos) {
       const newPhoto = this.restaurantPhotosRepository.create({
         photo_name: photo.filename,
         restaurant,
       });
-  
+
       const savedPhoto = await this.restaurantPhotosRepository.save(newPhoto);
-  
+
       processedPhotos.push(savedPhoto);
     }
-  
+
     return processedPhotos;
-  }  
+  }
 
   async getRestaurant(req: any): Promise<restaurant> {
     try {
@@ -626,6 +626,74 @@ export class UserRestaurantsService {
     } catch (error) {
       console.error('Error when deleting admin from restaurant:', error);
       throw new ConflictException('Error when deleting admin from restaurant');
+    }
+  }
+  async getRestaurantPhoto(user: user_restaurant): Promise<string[]> {
+    try {
+      if (!user || !user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!admin.adminRestaurant) {
+        throw new NotFoundException('User must have a restaurant');
+      }
+
+      const restaurant = admin.adminRestaurant;
+
+      if (!restaurant) {
+        throw new NotFoundException('Restaurant not found');
+      }
+
+      const restaurantPhotos = await this.restaurantPhotosRepository.find({
+        where: { restaurant: restaurant },
+      });
+
+      console.log('photo', restaurantPhotos);
+      if (!restaurantPhotos || restaurantPhotos.length === 0) {
+        throw new NotFoundException('Restaurant photos not found');
+      }
+
+      const photoNames = restaurantPhotos.map((photo) => photo.photo_name);
+      return photoNames;
+    } catch (error) {
+      throw new NotFoundException('Error when getting restaurant photos');
+    }
+  }
+
+  async getPhoto(req: any): Promise<restaurantPhotos> {
+    try {
+      if (!req.user || !req.user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+
+      const user = await this.adminRepository.findOne({
+        where: { id: req.user.id },
+        relations: ['adminRestaurant.photos'],
+      });
+
+      if (!user || !user.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+
+      const photos = user.adminRestaurant.photos;
+
+      if (!photos) {
+        throw new NotFoundException('Photos not found.');
+      }
+      console.log(photos);
+      return photos;
+    } catch (error) {
+      console.error('Error when getting restaurant photos:', error);
+      throw new NotFoundException('Error when getting restaurant photos');
     }
   }
 }

@@ -11,7 +11,6 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
-  NotFoundException,
   Res,
   ParseFilePipe,
   FileTypeValidator,
