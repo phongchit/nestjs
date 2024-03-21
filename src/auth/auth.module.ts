@@ -30,6 +30,7 @@ import { LocalrestaurantStrategy } from './local/local-restaurant.strategy';
     LocalUserStrategy,
     LocalrestaurantStrategy,
     LocalRestaurantAuthGuard,
+    LocalRestaurantAuthGuard,
     JwtStrategy,
   ],
 })

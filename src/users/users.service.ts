@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -44,6 +45,16 @@ export class UsersService {
     return table;
   }
 
+  async gettablebyId (tableId: string,user: user_clients,): Promise<table | undefined> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
+    }
+    const table = await this.tableRepository.findOne({ where: { id:tableId } });
+    return table;
+  }
+
   async createReservation(
     createReservationDto: CreateReservationDto,
     user: user_clients,
@@ -52,6 +63,7 @@ export class UsersService {
       const { tableId, reser_time, reser_date } = createReservationDto;
 
       const table = await this.findTable(tableId);
+      console.log(table);
 
       if (!table) {
         throw new NotFoundException('Table not found.');
@@ -77,6 +89,7 @@ export class UsersService {
         tableId,
         reser_date,
       );
+      console.log(isTableAvailable);
 
       if (!isTableAvailable) {
         throw new ConflictException(
@@ -91,6 +104,7 @@ export class UsersService {
         reser_date,
       });
 
+      console.log(newReservation);
       await Promise.all([
         this.reservationRepository.save(newReservation),
         this.updateTableStatus(tableId, reser_date),
@@ -98,7 +112,7 @@ export class UsersService {
 
       return newReservation;
     } catch (error) {
-      throw error;
+      throw new error();
     }
   }
 

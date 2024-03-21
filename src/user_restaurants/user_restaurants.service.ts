@@ -327,29 +327,29 @@ export class UserRestaurantsService {
 
   async createTable(
     createTableDto: CreateTableDto,
-    @Request() req,
+    @Request() user: user_restaurant,
     zoneId: string,
     photo: any,
   ): Promise<table> {
     const { table_number, table_capacity, table_describe } = createTableDto;
 
-    if (!req.user || !req.user.id) {
+    if (!user || !user.id) {
       throw new UnauthorizedException(
         'User information not found in the request.',
       );
     }
 
     try {
-      const user = await this.adminRepository.findOne({
-        where: { id: req.user.id },
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
         relations: ['adminRestaurant'],
       });
 
-      if (!user || !user.adminRestaurant) {
+      if (!admin || !admin.adminRestaurant) {
         throw new NotFoundException('User or associated restaurant not found.');
       }
 
-      const restaurant = user.adminRestaurant;
+      const restaurant = admin.adminRestaurant;
       const zone = await this.zoneRepository.findOne({
         where: { id: zoneId, restaurant: { id: restaurant.id } },
       });
@@ -373,37 +373,35 @@ export class UserRestaurantsService {
     }
   }
 
-  async getTables(req: any): Promise<table[]> {
+  async getTables(user: user_restaurant, zoneId: string): Promise<table[]> {
     try {
-      if (!req.user || !req.user.id) {
+      if (!user || !user.id) {
         throw new UnauthorizedException(
           'User information not found in the request.',
         );
       }
 
-      const user = await this.adminRepository.findOne({
-        where: { id: req.user.id },
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
         relations: ['adminRestaurant'],
       });
 
-      if (!user || !user.adminRestaurant) {
+      if (!admin || !admin.adminRestaurant) {
         throw new NotFoundException('User or associated restaurant not found.');
       }
 
-      const restaurant = user.adminRestaurant;
+      const restaurant = admin.adminRestaurant;
 
-      const zoneId = req.params.zoneId;
-
-      const zone = await this.zoneRepository.findOne({
+      const zones = await this.zoneRepository.findOne({
         where: { id: zoneId, restaurant: { id: restaurant.id } },
         relations: ['tables'],
       });
 
-      if (!zone) {
+      if (!zones) {
         throw new NotFoundException('Zone not found.');
       }
 
-      return zone.tables || [];
+      return zones.tables || [];
     } catch (error) {
       console.error('Error when getting tables for zone:', error);
       if (
@@ -416,9 +414,12 @@ export class UserRestaurantsService {
     }
   }
 
-  async addAdmin(username: string, req: any): Promise<user_restaurant> {
+  async addAdmin(
+    username: string,
+    user: user_restaurant,
+  ): Promise<user_restaurant> {
     try {
-      const currentUserId = req.user.id;
+      const currentUserId = user.id;
 
       const currentUser = await this.adminRepository.findOne({
         where: { id: currentUserId },
@@ -460,14 +461,17 @@ export class UserRestaurantsService {
     }
   }
 
-  async cancelReservation(reservationId: string, req: any): Promise<any> {
+  async cancelReservation(
+    reservationId: string,
+    user: user_restaurant,
+  ): Promise<any> {
     try {
-      const user = await this.adminRepository.findOne({
-        where: { id: req.user.id },
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
         relations: ['adminRestaurant'],
       });
 
-      if (!user || !user.adminRestaurant) {
+      if (!admin || !admin.adminRestaurant) {
         throw new UnauthorizedException(
           'User or associated restaurant not found.',
         );
@@ -514,10 +518,26 @@ export class UserRestaurantsService {
     }
   }
 
-  async getReservations(req: any, date?: string): Promise<reservation[]> {
+  async getReservations(
+    user: user_restaurant,
+    date?: string,
+  ): Promise<reservation[]> {
     try {
-      const user = await this.checkUser(req.user.id);
-      const userRestaurant = user.adminRestaurant;
+      if (!user || !user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!admin || !admin.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+      const userRestaurant = admin.adminRestaurant;
 
       const restaurantWithDetails =
         await this.restaurantRepository.findOneOrFail({
@@ -565,29 +585,9 @@ export class UserRestaurantsService {
     }
   }
 
-  async getReservationsByTableId(tableId: string): Promise<reservation[]> {
+  async deleteAdmin(username: string, user: user_restaurant): Promise<any> {
     try {
-      const table = await this.tableRepository.findOne({
-        where: { id: tableId },
-        relations: ['reservations'],
-      });
-
-      if (!table) {
-        throw new NotFoundException('Table not found.');
-      }
-
-      return table.reservations || [];
-    } catch (error) {
-      console.error('Error when getting reservations by table ID:', error);
-      throw new NotFoundException(
-        'Error when getting reservations by table ID',
-      );
-    }
-  }
-
-  async deleteAdmin(username: string, req: any): Promise<any> {
-    try {
-      const currentUserId = req.user.id;
+      const currentUserId = user.id;
 
       const currentUser = await this.adminRepository.findOne({
         where: { id: currentUserId },
@@ -654,7 +654,6 @@ export class UserRestaurantsService {
         where: { restaurant: restaurant },
       });
 
-      console.log('photo', restaurantPhotos);
       if (!restaurantPhotos || restaurantPhotos.length === 0) {
         throw new NotFoundException('Restaurant photos not found');
       }
@@ -688,7 +687,7 @@ export class UserRestaurantsService {
       if (!photos) {
         throw new NotFoundException('Photos not found.');
       }
-      console.log(photos);
+
       return photos;
     } catch (error) {
       console.error('Error when getting restaurant photos:', error);

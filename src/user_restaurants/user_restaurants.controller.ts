@@ -149,7 +149,7 @@ export class UserRestaurantsController {
   ): Promise<table> {
     return this.userRestaurantsService.createTable(
       createTableDto,
-      req,
+      req.user,
       zoneId,
       photo,
     );
@@ -157,8 +157,11 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('zones/:zoneId/tables')
-  async getTablesByrZone(@Request() req: any): Promise<table[]> {
-    return this.userRestaurantsService.getTables(req);
+  async getTablesByZone(
+    @Request() req: any,
+    @Param('reservationId') zoneId: string,
+  ): Promise<table[]> {
+    return this.userRestaurantsService.getTables(req.user, zoneId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -167,7 +170,7 @@ export class UserRestaurantsController {
     @Body('username') username: string,
     @Request() req,
   ): Promise<user_restaurant> {
-    return this.userRestaurantsService.addAdmin(username, req);
+    return this.userRestaurantsService.addAdmin(username, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -176,7 +179,7 @@ export class UserRestaurantsController {
     @Body('username') username: string,
     @Request() req,
   ): Promise<user_restaurant> {
-    return this.userRestaurantsService.deleteAdmin(username, req);
+    return this.userRestaurantsService.deleteAdmin(username, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -185,7 +188,7 @@ export class UserRestaurantsController {
     @Request() req: any,
     @Query('date') date?: string,
   ): Promise<reservation[]> {
-    return this.userRestaurantsService.getReservations(req, date);
+    return this.userRestaurantsService.getReservations(req.user, date);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -194,15 +197,10 @@ export class UserRestaurantsController {
     @Param('reservationId') reservationId: string,
     @Request() req: any,
   ): Promise<void> {
-    return this.userRestaurantsService.cancelReservation(reservationId, req);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('tables/:tableId/reservations')
-  async getReservationsByTableId(
-    @Param('tableId') tableId: string,
-  ): Promise<reservation[]> {
-    return this.userRestaurantsService.getReservationsByTableId(tableId);
+    return this.userRestaurantsService.cancelReservation(
+      reservationId,
+      req.user,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

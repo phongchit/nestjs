@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import { profile, reservation, restaurant } from 'src/entities';
+import { profile, reservation, restaurant, table } from 'src/entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -141,4 +141,14 @@ export class UsersController {
   async deletePhoto(@Request() req: any) {
     return this.userservice.deletePhoto(req.user);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/get/:tableId')
+  async getTablebyId(
+    @Param('tableId') tableId: string,
+    @Request() req: any,
+  ): Promise<table> {
+    return this.userservice.gettablebyId(tableId, req.user);
+  }
+
 }

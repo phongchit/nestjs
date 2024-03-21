@@ -14,7 +14,9 @@ export class reservation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => user_clients, (userClient) => userClient.reservations)
+  @ManyToOne(() => user_clients, (userClient) => userClient.reservations, {
+    cascade: true,
+  })
   userClient: user_clients;
 
   @ManyToOne(() => table, (table) => table.reservations)
