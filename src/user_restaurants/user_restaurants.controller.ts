@@ -8,12 +8,13 @@ import {
   Get,
   Patch,
   Query,
-  UploadedFile,
   UseInterceptors,
   UploadedFiles,
   ParseFilePipe,
   FileTypeValidator,
   Res,
+  UploadedFile,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -46,6 +47,16 @@ export class UserRestaurantsController {
   ): Promise<restaurant> {
     return this.userRestaurantsService.createRestaurant(
       createRestaurantDto,
+      req.user,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin')
+  async getAdmin(
+    @Request() req,
+  ): Promise<user_restaurant> {
+    return this.userRestaurantsService.getprofile(
       req.user,
     );
   }
@@ -127,6 +138,20 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create/:zoneId/table')
+  async createTable(
+    @Body() createTableDto: CreateTableDto,
+    @Request() req,
+    @Param('zoneId') zoneId: string,
+  ): Promise<table> {
+    return this.userRestaurantsService.createTable(
+      createTableDto,
+      req.user,
+      zoneId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':tableId/table')
   @UseInterceptors(
     FileInterceptor('photo', {
       storage: diskStorage({
@@ -141,25 +166,46 @@ export class UserRestaurantsController {
       }),
     }),
   )
-  async createTable(
-    @Body() createTableDto: CreateTableDto,
-    @Request() req,
-    @Param('zoneId') zoneId: string,
-    @UploadedFile() photo: Express.Multer.File,
+  async updatePhoto(
+    @Request() req: any,
+    @Param('tableId') tableId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+      }),
+    )
+    photo: Express.Multer.File,
   ): Promise<table> {
-    return this.userRestaurantsService.createTable(
-      createTableDto,
+    return this.userRestaurantsService.uploadTablephoto(
       req.user,
-      zoneId,
       photo,
+      tableId,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':tableId/photo')
+  async getTablePhoto(
+    @Request() req: any,
+    @Param('tableId') tableId: string,
+    @Res() res: any,
+  ): Promise<void> {
+    try {
+      const photoFileName = await this.userRestaurantsService.getTablePhoto(
+        req.user.id,
+        tableId,
+      );
+      res.sendFile(path.join(__dirname, '../../tables/' + photoFileName));
+    } catch (error) {
+      throw new NotFoundException();
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('zones/:zoneId/tables')
   async getTablesByZone(
     @Request() req: any,
-    @Param('reservationId') zoneId: string,
+    @Param('zoneId') zoneId: string,
   ): Promise<table[]> {
     return this.userRestaurantsService.getTables(req.user, zoneId);
   }
@@ -204,12 +250,39 @@ export class UserRestaurantsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('restaurant/photo')
-  async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
-    const photos = await this.userRestaurantsService.getPhoto(req.user);
-
-    const photoFileName = photos[0].photo_name;
-    console.log(photoFileName);
-    res.sendFile(path.join(__dirname, '../../restaurants/' + photoFileName));
+  @Get('reservation/:reservationId')
+  async GetreservationbyId(
+    @Request() req,
+    @Param('reservationId') reservationId: string,
+  ): Promise<reservation> {
+    return this.userRestaurantsService.getReservationById(reservationId,req.user);
   }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Get('restaurant/photo')
+  // async getRestaurantPhoto(
+  //   @Request() req: any,
+  //   @Res() res: any,
+  // ): Promise<void> {
+  //   const photos = await this.userRestaurantsService.getPhoto(req.user);
+  //   const photoFileName = photos[0].photo_name;
+  //   res.sendFile(path.join(__dirname, '../../restaurants/' + photoFileName));
+  // }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Get('photo')
+  // async getRestaurantPhoto(
+  //   @Request() req: any,
+  //   @Res() res: any,
+  // ): Promise<void> {
+  //   try {
+  //     const photos = await this.userRestaurantsService.getRestaurantPhoto(
+  //       req.user.id,
+  //     );
+  //     const photoFileName = photos
+  //     res.sendFile(path.join(__dirname, '../../restaurants/' + photoFileName));
+  //   } catch (error) {
+  //     throw new NotFoundException();
+  //   }
+  // }
 }

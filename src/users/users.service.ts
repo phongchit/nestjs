@@ -45,13 +45,18 @@ export class UsersService {
     return table;
   }
 
-  async gettablebyId (tableId: string,user: user_clients,): Promise<table | undefined> {
+  async gettablebyId(
+    tableId: string,
+    user: user_clients,
+  ): Promise<table | undefined> {
     if (!user || !user.id) {
       throw new UnauthorizedException(
         'User information not found in the request.',
       );
     }
-    const table = await this.tableRepository.findOne({ where: { id:tableId } });
+    const table = await this.tableRepository.findOne({
+      where: { id: tableId },
+    });
     return table;
   }
 

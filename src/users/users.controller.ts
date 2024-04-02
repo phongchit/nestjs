@@ -14,6 +14,7 @@ import {
   Res,
   ParseFilePipe,
   FileTypeValidator,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -126,7 +127,7 @@ export class UsersController {
       const photoFileName = await this.userservice.getProfilePhoto(req.user.id);
       res.sendFile(path.join(__dirname, '../../profile/' + photoFileName));
     } catch (error) {
-      res.status(404).json({ message: 'Photo not found' });
+      throw new NotFoundException();
     }
   }
 
@@ -150,5 +151,4 @@ export class UsersController {
   ): Promise<table> {
     return this.userservice.gettablebyId(tableId, req.user);
   }
-
 }
