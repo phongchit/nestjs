@@ -23,7 +23,6 @@ import { reservation } from 'src/entities/reservation.entity';
 import { UpdateZoneDto } from './dto/update.zone.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 
 @Injectable()
 export class UserRestaurantsService {
@@ -239,6 +238,39 @@ export class UserRestaurantsService {
     }
   }
 
+  async deleteRestaurant(user: user_restaurant): Promise<void> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User information not found in the request.');
+    }
+  
+    try {
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!admin || !admin.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+  
+      const restaurant = admin.adminRestaurant;
+
+      const deleteRestaurant = await this.restaurantRepository.findOne({
+        where: { id: restaurant.id },
+      });
+  
+      if (!deleteRestaurant) {
+        throw new NotFoundException('Restaurant not found.');
+      }
+  
+      // Delete the restaurant
+      await this.restaurantRepository.remove(deleteRestaurant);
+    } catch (error) {
+      console.error('Error when deleting restaurant:', error);
+      throw new ConflictException('Error when deleting restaurant');
+    }
+  }  
+
   async createZone(
     createZoneDto: CreateZoneDto,
     @Request() user: user_restaurant,
@@ -333,6 +365,38 @@ export class UserRestaurantsService {
       throw new UnauthorizedException('Error when getting zones for admin');
     }
   }
+
+  async deleteZone(zoneId: string, user: user_restaurant): Promise<void> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User information not found in the request.');
+    }
+  
+    try {
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!admin || !admin.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+  
+      const restaurantId = admin.adminRestaurant.id;
+  
+      const existingZone = await this.zoneRepository.findOne({
+        where: { id: zoneId, restaurant: { id: restaurantId } },
+      });
+  
+      if (!existingZone) {
+        throw new NotFoundException('Zone not found.');
+      }
+  
+      await this.zoneRepository.remove(existingZone);
+    } catch (error) {
+      console.error('Error when deleting zone:', error);
+      throw new ConflictException('Error when deleting zone');
+    }
+  }  
 
   async createTable(
     createTableDto: CreateTableDto,
@@ -462,15 +526,41 @@ export class UserRestaurantsService {
       return zones.tables || [];
     } catch (error) {
       console.error('Error when getting tables for zone:', error);
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
       throw new NotFoundException('Error when getting tables for zone');
     }
   }
+
+  async deleteTable(tableId: string, user: user_restaurant): Promise<void> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User information not found in the request.');
+    }
+  
+    try {
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+  
+      if (!admin || !admin.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+  
+      const restaurantId = admin.adminRestaurant.id;
+  
+      const table = await this.tableRepository.findOne({
+        where: { id: tableId, zone: { restaurant: { id: restaurantId } } },
+      });
+  
+      if (!table) {
+        throw new NotFoundException('Table not found.');
+      }
+  
+      await this.tableRepository.remove(table);
+    } catch (error) {
+      console.error('Error when deleting table:', error);
+      throw new ConflictException('Error when deleting table');
+    }
+  }  
 
   async addAdmin(
     username: string,

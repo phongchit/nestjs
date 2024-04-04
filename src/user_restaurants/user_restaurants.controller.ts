@@ -15,6 +15,7 @@ import {
   Res,
   UploadedFile,
   NotFoundException,
+  Delete,
 } from '@nestjs/common';
 import { UserRestaurantsService } from './user_restaurants.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
@@ -108,6 +109,16 @@ export class UserRestaurantsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Delete('delete/restaurant')
+  async DeleteRestaurant(
+    @Request() req,
+  ): Promise<void> {
+    return this.userRestaurantsService.deleteRestaurant(
+      req.user,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('create/zone')
   async createZone(
     @Body() createZoneDto: CreateZoneDto,
@@ -124,7 +135,7 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('update/:zoneId/zone')
-  async updateProfile(
+  async updateZone(
     @Body() updatezonedto: UpdateZoneDto,
     @Param('zoneId') zoneId: string,
     @Request() req: any,
@@ -133,6 +144,18 @@ export class UserRestaurantsController {
       updatezonedto,
       req.user,
       zoneId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('delete/:zoneId/zone')
+  async deleteZone(
+    @Body() updatezonedto: UpdateZoneDto,
+    @Param('zoneId') zoneId: string,
+    @Request() req: any,
+  ): Promise<void> {
+    return this.userRestaurantsService.deleteZone(
+      zoneId,req.user
     );
   }
 
@@ -208,6 +231,15 @@ export class UserRestaurantsController {
     @Param('zoneId') zoneId: string,
   ): Promise<table[]> {
     return this.userRestaurantsService.getTables(req.user, zoneId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('zones/tables/:tableId')
+  async deleteTable(
+    @Request() req: any,
+    @Param('tableId') tableId: string,
+  ): Promise<void> {
+    return this.userRestaurantsService.deleteTable(tableId,req.user);
   }
 
   @UseGuards(JwtAuthGuard)
