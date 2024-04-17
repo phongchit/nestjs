@@ -18,7 +18,13 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import { profile, reservation, restaurant, table } from 'src/entities';
+import {
+  profile,
+  reservation,
+  restaurant,
+  table,
+  user_clients,
+} from 'src/entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -57,6 +63,15 @@ export class UsersController {
   @Get(':restaurantId/zones')
   async getZone(@Param('restaurantId') restaurantId: string): Promise<any> {
     return this.userservice.getZoneByRestaurantId(restaurantId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':zoneId/tables')
+  async getTablesByZoneId(
+    @Param('zoneId') zoneId: string,
+    @Request() req: any,
+  ): Promise<table[]> {
+    return this.userservice.getTableByZoneId(zoneId, req.user);
   }
 
   @UseGuards(JwtAuthGuard)

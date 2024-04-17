@@ -23,6 +23,7 @@ import { reservation } from 'src/entities/reservation.entity';
 import { UpdateZoneDto } from './dto/update.zone.dto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { UpdateTableDto } from './dto/update.table.dto';
 
 @Injectable()
 export class UserRestaurantsService {
@@ -55,25 +56,27 @@ export class UserRestaurantsService {
     return restaurant;
   }
 
-  async getprofile(user:user_restaurant): Promise<user_restaurant>{
+  async getprofile(user: user_restaurant): Promise<user_restaurant> {
     try {
-      console.log(user)
+      console.log(user);
       if (!user || !user.id) {
-        throw new UnauthorizedException()
+        throw new UnauthorizedException();
       }
 
-      const admin = await this.adminRepository.findOne({where:{id:user.id}})
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+      });
 
       if (admin) {
-        delete admin.password
-        delete admin.createdAt
-        delete admin.updatedAt
-        delete admin.id
+        delete admin.password;
+        delete admin.createdAt;
+        delete admin.updatedAt;
+        delete admin.id;
       }
-      console.log(admin)
-      return admin
+      console.log(admin);
+      return admin;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
@@ -240,36 +243,38 @@ export class UserRestaurantsService {
 
   async deleteRestaurant(user: user_restaurant): Promise<void> {
     if (!user || !user.id) {
-      throw new UnauthorizedException('User information not found in the request.');
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
     }
-  
+
     try {
       const admin = await this.adminRepository.findOne({
         where: { id: user.id },
         relations: ['adminRestaurant'],
       });
-  
+
       if (!admin || !admin.adminRestaurant) {
         throw new NotFoundException('User or associated restaurant not found.');
       }
-  
+
       const restaurant = admin.adminRestaurant;
 
       const deleteRestaurant = await this.restaurantRepository.findOne({
         where: { id: restaurant.id },
       });
-  
+
       if (!deleteRestaurant) {
         throw new NotFoundException('Restaurant not found.');
       }
-  
+
       // Delete the restaurant
       await this.restaurantRepository.remove(deleteRestaurant);
     } catch (error) {
       console.error('Error when deleting restaurant:', error);
       throw new ConflictException('Error when deleting restaurant');
     }
-  }  
+  }
 
   async createZone(
     createZoneDto: CreateZoneDto,
@@ -368,35 +373,37 @@ export class UserRestaurantsService {
 
   async deleteZone(zoneId: string, user: user_restaurant): Promise<void> {
     if (!user || !user.id) {
-      throw new UnauthorizedException('User information not found in the request.');
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
     }
-  
+
     try {
       const admin = await this.adminRepository.findOne({
         where: { id: user.id },
         relations: ['adminRestaurant'],
       });
-  
+
       if (!admin || !admin.adminRestaurant) {
         throw new NotFoundException('User or associated restaurant not found.');
       }
-  
+
       const restaurantId = admin.adminRestaurant.id;
-  
+
       const existingZone = await this.zoneRepository.findOne({
         where: { id: zoneId, restaurant: { id: restaurantId } },
       });
-  
+
       if (!existingZone) {
         throw new NotFoundException('Zone not found.');
       }
-  
+
       await this.zoneRepository.remove(existingZone);
     } catch (error) {
       console.error('Error when deleting zone:', error);
       throw new ConflictException('Error when deleting zone');
     }
-  }  
+  }
 
   async createTable(
     createTableDto: CreateTableDto,
@@ -495,7 +502,7 @@ export class UserRestaurantsService {
     }
   }
 
-  async getTables(user: user_restaurant, zoneId: string): Promise<table[]> {
+  async getTables(user: any, zoneId: string): Promise<table[]> {
     try {
       if (!user || !user.id) {
         throw new UnauthorizedException(
@@ -530,37 +537,117 @@ export class UserRestaurantsService {
     }
   }
 
-  async deleteTable(tableId: string, user: user_restaurant): Promise<void> {
+  async deleteTable(tableId: string, user: any): Promise<void> {
     if (!user || !user.id) {
-      throw new UnauthorizedException('User information not found in the request.');
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
     }
-  
+
     try {
       const admin = await this.adminRepository.findOne({
         where: { id: user.id },
         relations: ['adminRestaurant'],
       });
-  
+
       if (!admin || !admin.adminRestaurant) {
         throw new NotFoundException('User or associated restaurant not found.');
       }
-  
+
       const restaurantId = admin.adminRestaurant.id;
-  
+
       const table = await this.tableRepository.findOne({
         where: { id: tableId, zone: { restaurant: { id: restaurantId } } },
       });
-  
+
       if (!table) {
         throw new NotFoundException('Table not found.');
       }
-  
+
       await this.tableRepository.remove(table);
     } catch (error) {
       console.error('Error when deleting table:', error);
       throw new ConflictException('Error when deleting table');
     }
-  }  
+  }
+
+  async getTableByTableId(
+    tableId: string,
+    user: user_restaurant,
+  ): Promise<table> {
+    try {
+      if (!user || !user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!admin || !admin.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+      const table = await this.tableRepository.findOne({
+        where: { id: tableId },
+      });
+
+      if (!table) {
+        throw new NotFoundException('Table not found.');
+      }
+
+      return table;
+    } catch (error) {
+      console.error('Error when getting table by tableId:', error);
+      throw new NotFoundException('Error when getting table by tableId');
+    }
+  }
+
+  async updateTable(
+    updateTableDto: UpdateTableDto,
+    user: user_restaurant,
+    tableId: string,
+  ): Promise<table> {
+    const { table_number, table_capacity, table_describe } = updateTableDto;
+
+    try {
+      if (!user || !user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!admin || !admin.adminRestaurant) {
+        throw new NotFoundException('User or associated restaurant not found.');
+      }
+
+      const restaurantId = admin.adminRestaurant.id;
+
+      const table = await this.tableRepository.findOne({
+        where: { id: tableId, zone: { restaurant: { id: restaurantId } } },
+      });
+
+      if (!table) {
+        throw new NotFoundException('Table not found.');
+      }
+
+      // Update table information
+      if (table_number) table.table_number = table_number;
+      if (table_capacity) table.table_capacity = table_capacity;
+      if (table_describe) table.table_describe = table_describe;
+
+      return await this.tableRepository.save(table);
+    } catch (error) {
+      console.error('Error when updating table:', error);
+      throw new ConflictException('Error when updating table');
+    }
+  }
 
   async addAdmin(
     username: string,
@@ -779,14 +866,16 @@ export class UserRestaurantsService {
   //     throw new UnauthorizedException()
   //   }
   //   try {
-  //     return 
+  //     return
   //   } catch (error) {
   //     throw new NotFoundException()
   //   }
   // }
 
-  async getReservationById(reservationId: string,
-    user: user_restaurant,): Promise<reservation> {
+  async getReservationById(
+    reservationId: string,
+    user: user_restaurant,
+  ): Promise<reservation> {
     try {
       if (!user || !user.id) {
         throw new UnauthorizedException(
@@ -805,28 +894,28 @@ export class UserRestaurantsService {
 
       const reservation = await this.reservationRepository.findOne({
         where: { id: reservationId },
-        relations:['table','userClient']
+        relations: ['table', 'userClient'],
       });
 
       if (!reservation) {
         throw new NotFoundException('Reservation not found.');
-      }else{
-        delete reservation.createdAt
-        delete reservation.updatedAt
+      } else {
+        delete reservation.createdAt;
+        delete reservation.updatedAt;
       }
       if (reservation.userClient) {
         delete reservation.userClient.password;
-        delete reservation.userClient.createdAt
-        delete reservation.userClient.updatedAt
-        delete reservation.userClient.email
-        delete reservation.userClient.id
+        delete reservation.userClient.createdAt;
+        delete reservation.userClient.updatedAt;
+        delete reservation.userClient.email;
+        delete reservation.userClient.id;
       }
-      if(reservation.table){
-        delete reservation.table.createdAt
-        delete reservation.table.updatedAt
-        delete reservation.table.photo
-        delete reservation.table.table_status
-        delete reservation.table.id
+      if (reservation.table) {
+        delete reservation.table.createdAt;
+        delete reservation.table.updatedAt;
+        delete reservation.table.photo;
+        delete reservation.table.table_status;
+        delete reservation.table.id;
       }
 
       return reservation;

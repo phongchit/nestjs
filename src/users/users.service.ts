@@ -199,7 +199,7 @@ export class UsersService {
   async getZoneByRestaurantId(restaurantId: string): Promise<any> {
     const selectedRestaurant = await this.restaurantRepository.findOneOrFail({
       where: { id: restaurantId },
-      relations: ['zones', 'zones.tables'],
+      relations: ['zones'],
     });
 
     if (!selectedRestaurant) {
@@ -215,6 +215,29 @@ export class UsersService {
     );
 
     return zonesWithTables;
+  }
+
+  async getTableByZoneId(zoneId: string, user: user_clients): Promise<table[]> {
+    try {
+      if (!user || !user.id) {
+        throw new UnauthorizedException();
+      }
+      const zone = await this.zone_tableRepository.findOne({
+        where: { id: zoneId },
+        relations: ['tables'],
+      });
+
+      // If zone is not found, throw NotFoundException
+      if (!zone) {
+        throw new NotFoundException('Zone not found.');
+      }
+
+      // Extract and return tables from the found zone
+      return zone.tables;
+    } catch (error) {
+      console.error('Error when getting tables by zone ID:', error);
+      throw new NotFoundException('Error when getting tables by zone ID');
+    }
   }
 
   async getReservations(

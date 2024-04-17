@@ -19,7 +19,9 @@ export class reservation {
   })
   userClient: user_clients;
 
-  @ManyToOne(() => table, (table) => table.reservations)
+  @ManyToOne(() => table, (table) => table.reservations, {
+    onDelete: 'SET NULL',
+  })
   table: table;
 
   @Column({ type: 'time' })

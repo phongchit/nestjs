@@ -35,6 +35,7 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { UpdateZoneDto } from './dto/update.zone.dto';
 import { extname } from 'path';
+import { UpdateTableDto } from './dto/update.table.dto';
 
 @Controller('restaurants')
 export class UserRestaurantsController {
@@ -54,12 +55,8 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('admin')
-  async getAdmin(
-    @Request() req,
-  ): Promise<user_restaurant> {
-    return this.userRestaurantsService.getprofile(
-      req.user,
-    );
+  async getAdmin(@Request() req): Promise<user_restaurant> {
+    return this.userRestaurantsService.getprofile(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -110,12 +107,8 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('delete/restaurant')
-  async DeleteRestaurant(
-    @Request() req,
-  ): Promise<void> {
-    return this.userRestaurantsService.deleteRestaurant(
-      req.user,
-    );
+  async DeleteRestaurant(@Request() req): Promise<void> {
+    return this.userRestaurantsService.deleteRestaurant(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -154,9 +147,7 @@ export class UserRestaurantsController {
     @Param('zoneId') zoneId: string,
     @Request() req: any,
   ): Promise<void> {
-    return this.userRestaurantsService.deleteZone(
-      zoneId,req.user
-    );
+    return this.userRestaurantsService.deleteZone(zoneId, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -170,6 +161,20 @@ export class UserRestaurantsController {
       createTableDto,
       req.user,
       zoneId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('update/:tableId/table')
+  async updateTable(
+    @Body() updateTableDto: UpdateTableDto,
+    @Request() req,
+    @Param('tableId') tableId: string,
+  ): Promise<table> {
+    return this.userRestaurantsService.updateTable(
+      updateTableDto,
+      req.user,
+      tableId,
     );
   }
 
@@ -239,7 +244,16 @@ export class UserRestaurantsController {
     @Request() req: any,
     @Param('tableId') tableId: string,
   ): Promise<void> {
-    return this.userRestaurantsService.deleteTable(tableId,req.user);
+    return this.userRestaurantsService.deleteTable(tableId, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('zones/tables/:tableId')
+  async GettablebyId(
+    @Request() req: any,
+    @Param('tableId') tableId: string,
+  ): Promise<table> {
+    return this.userRestaurantsService.getTableByTableId(tableId, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -287,7 +301,10 @@ export class UserRestaurantsController {
     @Request() req,
     @Param('reservationId') reservationId: string,
   ): Promise<reservation> {
-    return this.userRestaurantsService.getReservationById(reservationId,req.user);
+    return this.userRestaurantsService.getReservationById(
+      reservationId,
+      req.user,
+    );
   }
 
   // @UseGuards(JwtAuthGuard)
