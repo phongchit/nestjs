@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   reservation,
   restaurant,
-  restaurantPhotos,
   table,
   user_restaurant,
   zone_table,
@@ -19,7 +18,6 @@ import {
       zone_table,
       table,
       reservation,
-      restaurantPhotos,
     ]),
   ],
   exports: [UserRestaurantsService],

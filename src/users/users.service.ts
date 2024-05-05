@@ -62,13 +62,13 @@ export class UsersService {
 
   async createReservation(
     createReservationDto: CreateReservationDto,
+    tableId:string,
     user: user_clients,
   ): Promise<reservation> {
     try {
-      const { tableId, reser_time, reser_date } = createReservationDto;
+      const {reser_time, reser_date } = createReservationDto;
 
       const table = await this.findTable(tableId);
-      console.log(table);
 
       if (!table) {
         throw new NotFoundException('Table not found.');
@@ -94,7 +94,6 @@ export class UsersService {
         tableId,
         reser_date,
       );
-      console.log(isTableAvailable);
 
       if (!isTableAvailable) {
         throw new ConflictException(
@@ -263,6 +262,19 @@ export class UsersService {
     }
   }
 
+  async getReservaionbyId(reservationId: string, user: user_clients): Promise<reservation>{
+    const reservation = await this.reservationRepository.findOne({
+      where: { id: reservationId, userClient: { id: user.id } },
+      relations: ['table'],
+    });
+    if (!reservation) {
+      throw new NotFoundException(
+        'Reservation not found',
+      );
+    }
+    return reservation;
+  }
+
   async createProfile(
     createProfileDto: createProfileDto,
     user: user_clients,
@@ -390,7 +402,6 @@ export class UsersService {
       if (!profile || !profile.photo) {
         throw new NotFoundException('Profile or photo not found.');
       }
-
       return profile.photo;
     } catch (error) {
       console.error('Error when getting profile photo:', error);

@@ -9,7 +9,6 @@ import {
   Patch,
   Query,
   UseInterceptors,
-  UploadedFiles,
   ParseFilePipe,
   FileTypeValidator,
   Res,
@@ -30,7 +29,7 @@ import {
 import { CreateZoneDto } from './dto/create.zone.dto';
 import { CreateTableDto } from './dto/create.table.dto';
 import { UpdateRestaurantDto } from './dto/update.restaurant.dto';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { UpdateZoneDto } from './dto/update.zone.dto';
@@ -60,12 +59,34 @@ export class UserRestaurantsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('upload/photo')
+  @Get('photo')
+  async getRestaurantPhoto(@Request() req: any, @Res() res: any): Promise<void> {
+    try {
+      const photoFileName = await this.userRestaurantsService.getRestaurantPhoto(req.user);
+      res.sendFile(path.join(__dirname, '../../restaurants/', photoFileName));
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile/photo')
+  async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
+    try {
+      const photoFileName = await this.userRestaurantsService.getProfilePhoto(req.user);
+      res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('photo')
   @UseInterceptors(
-    FilesInterceptor('photos', 3, {
+    FileInterceptor('photo', {
       storage: diskStorage({
         destination: './restaurants',
-        filename: (req, file, callback) => {
+        filename(req, file, callback) {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const extension = extname(file.originalname);
@@ -75,17 +96,101 @@ export class UserRestaurantsController {
       }),
     }),
   )
-  async uploadRestaurantPhoto(
-    @UploadedFiles(
+  async updateRestaurantPhoto(
+    @Request() req: any,
+    @UploadedFile(
       new ParseFilePipe({
         validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
       }),
     )
-    photos: Array<Express.Multer.File>,
-    @Request() req,
+    photo: Express.Multer.File,
   ): Promise<restaurant> {
-    return this.userRestaurantsService.uploadPhotos(req.user, photos);
+    return this.userRestaurantsService.updateRestaurantphoto(req.user, photo);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile/photo')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './profile',
+        filename(req, file, callback) {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const extension = extname(file.originalname);
+          const filename = `${uniqueSuffix}${extension}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
+  async updateProfilephoto(
+    @Request() req: any,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+      }),
+    )
+    photo: Express.Multer.File,
+  ): Promise<user_restaurant> {
+    return this.userRestaurantsService.updateprofilephoto(req.user, photo);
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Patch('upload/photo')
+  // @UseInterceptors(
+  //   FileInterceptor('photo', {
+  //     storage: diskStorage({
+  //       destination: './restaurants',
+  //       filename(req, file, callback) {
+  //         const uniqueSuffix =
+  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
+  //         const extension = extname(file.originalname);
+  //         const filename = `${uniqueSuffix}${extension}`;
+  //         callback(null, filename);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // async uploadRestaurantPhoto(
+  //   @UploadedFiles(
+  //     new ParseFilePipe({
+  //       validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+  //     }),
+  //   )
+  //   photo: Express.Multer.File,
+  //   @Request() req,
+  // ): Promise<restaurant> {
+  //   return this.userRestaurantsService.uploadPhotos(req.user, photo);
+  // }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Patch('upload/photo')
+  // @UseInterceptors(
+  //   FileInterceptor('photo', {
+  //     storage: diskStorage({
+  //       destination: './restaurants',
+  //       filename(req, file, callback) {
+  //         const uniqueSuffix =
+  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
+  //         const extension = extname(file.originalname);
+  //         const filename = `${uniqueSuffix}${extension}`;
+  //         callback(null, filename);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // async uploadRestaurantPhoto(
+  //   @Request() req: any,
+  //   @UploadedFile(
+  //     new ParseFilePipe({
+  //       validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+  //     }),
+  //   )
+  //   photo: Express.Multer.File,
+  // ): Promise<restaurantPhotos> {
+  //      return this.userRestaurantsService.uploadRestaurantPhoto(req.user, photo);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -219,10 +324,7 @@ export class UserRestaurantsController {
     @Res() res: any,
   ): Promise<void> {
     try {
-      const photoFileName = await this.userRestaurantsService.getTablePhoto(
-        req.user.id,
-        tableId,
-      );
+      const photoFileName = await this.userRestaurantsService.getTablePhoto(req.user.id,tableId,);
       res.sendFile(path.join(__dirname, '../../tables/' + photoFileName));
     } catch (error) {
       throw new NotFoundException();

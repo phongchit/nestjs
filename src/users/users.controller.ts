@@ -23,7 +23,6 @@ import {
   reservation,
   restaurant,
   table,
-  user_clients,
 } from 'src/entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -36,12 +35,13 @@ export class UsersController {
   constructor(private userservice: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('create/reservation')
+  @Post('create/:tableId/reservation')
   async createReservation(
     @Body() createReservationDto: CreateReservationDto,
+    @Param('tableId') tableId: string,
     @Request() req: any,
   ): Promise<reservation> {
-    return this.userservice.createReservation(createReservationDto, req.user);
+    return this.userservice.createReservation(createReservationDto, tableId,req.user,);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -51,6 +51,15 @@ export class UsersController {
     @Request() req: any,
   ): Promise<reservation> {
     return this.userservice.cancelReservation(reservationId, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('reservations/:reservationId')
+  async Reservation(
+    @Param('reservationId') reservationId: string,
+    @Request() req: any,
+  ): Promise<reservation> {
+    return this.userservice.getReservaionbyId(reservationId, req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -139,12 +148,13 @@ export class UsersController {
   @Get('profile/photo')
   async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
     try {
-      const photoFileName = await this.userservice.getProfilePhoto(req.user.id);
-      res.sendFile(path.join(__dirname, '../../profile/' + photoFileName));
+      const photoFileName = await this.userservice.getProfilePhoto(req.user);
+      res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
     } catch (error) {
       throw new NotFoundException();
     }
   }
+  
 
   @UseGuards(JwtAuthGuard)
   @Delete('profile')

@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { user_restaurant } from './user_restaurant.entity';
 import { zone_table } from './zone_table.entity';
-import { restaurantPhotos } from './restaurant.photo.entity';
 
 @Entity()
 export class restaurant {
@@ -24,9 +23,6 @@ export class restaurant {
   )
   admins: user_restaurant[];
 
-  @OneToMany(() => restaurantPhotos, (photo) => photo.restaurant, {})
-  photos: restaurantPhotos[];
-
   @Column()
   rest_name: string;
 
@@ -38,6 +34,9 @@ export class restaurant {
 
   @Column({ default: false })
   rest_status: boolean;
+
+  @Column({ nullable: true })
+  photo: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

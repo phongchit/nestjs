@@ -9,7 +9,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   restaurant,
-  restaurantPhotos,
   table,
   user_restaurant,
   zone_table,
@@ -38,8 +37,6 @@ export class UserRestaurantsService {
     private tableRepository: Repository<table>,
     @InjectRepository(reservation)
     private reservationRepository: Repository<reservation>,
-    @InjectRepository(restaurantPhotos)
-    private restaurantPhotosRepository: Repository<restaurantPhotos>,
   ) {}
 
   async findOne(username: string): Promise<user_restaurant | undefined> {
@@ -124,36 +121,6 @@ export class UserRestaurantsService {
     }
   }
 
-  async uploadPhotos(
-    user: user_restaurant,
-    photos: Array<Express.Multer.File>,
-  ): Promise<any> {
-    const processedPhotos: restaurantPhotos[] = [];
-    const admin = await this.adminRepository.findOne({
-      where: { id: user.id },
-      relations: ['adminRestaurant'],
-    });
-
-    if (!admin.adminRestaurant) {
-      throw new BadRequestException('User must have a restaurant.');
-    }
-
-    const restaurant = admin.adminRestaurant;
-
-    for (const photo of photos) {
-      const newPhoto = this.restaurantPhotosRepository.create({
-        photo_name: photo.filename,
-        restaurant,
-      });
-
-      const savedPhoto = await this.restaurantPhotosRepository.save(newPhoto);
-
-      processedPhotos.push(savedPhoto);
-    }
-
-    return processedPhotos;
-  }
-
   async getRestaurant(user: user_restaurant): Promise<restaurant> {
     if (!user || !user.id) {
       throw new UnauthorizedException(
@@ -163,7 +130,7 @@ export class UserRestaurantsService {
 
     const admin = await this.adminRepository.findOne({
       where: { id: user.id },
-      relations: ['adminRestaurant', 'adminRestaurant.photos'],
+      relations: ['adminRestaurant'],
     });
 
     if (!admin || !admin.adminRestaurant) {
@@ -181,6 +148,65 @@ export class UserRestaurantsService {
       throw new NotFoundException('Error when getting restaurant');
     }
   }
+
+  async updateRestaurantphoto(
+    user: user_restaurant,
+    photo: Express.Multer.File,
+  ): Promise<restaurant> {
+
+    if (!user || !user.id) {
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
+    }
+
+    const admin = await this.adminRepository.findOne({
+      where: { id: user.id },
+      relations: ['adminRestaurant'],
+    });
+
+    const restaurant = admin.adminRestaurant;
+
+    if (restaurant.photo) {
+      const photoPath = path.join(__dirname, '../../restaurants/', restaurant.photo);
+      fs.unlinkSync(photoPath);
+    }
+
+    restaurant.photo = photo.filename;
+
+    try {
+      await this.restaurantRepository.save(restaurant);
+      return restaurant;
+    } catch (error) {
+      console.error('Error saving updated profile:', error);
+
+      throw new ConflictException();
+    }
+  }
+
+  async getRestaurantPhoto(user: user_restaurant): Promise<string> {
+    try {
+      if (!user || !user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+  
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+        relations: ['adminRestaurant'],
+      });
+
+      if (!admin || !admin.adminRestaurant.photo) {
+        throw new NotFoundException('Profile or photo not found.');
+      }
+      return admin.adminRestaurant.photo;
+    } catch (error) {
+      console.error('Error when getting profile photo:', error);
+      throw new NotFoundException('Error when getting profile photo');
+    }
+  }
+
 
   async updateRestaurant(
     updateRestaurantDto: UpdateRestaurantDto,
@@ -313,6 +339,60 @@ export class UserRestaurantsService {
       return await this.zoneRepository.save(newZone);
     } catch (error) {
       throw new ConflictException('Error when creating zone');
+    }
+  }
+
+  async updateprofilephoto(
+    user: user_restaurant,
+    photo: Express.Multer.File,
+  ): Promise<user_restaurant> {
+
+    if (!user || !user.id) {
+      throw new UnauthorizedException(
+        'User information not found in the request.',
+      );
+    }
+
+    const admin = await this.adminRepository.findOne({
+      where: { id: user.id },
+    });
+
+    if (admin.photo) {
+      const photoPath = path.join(__dirname, '../../profile/', admin.photo);
+      fs.unlinkSync(photoPath);
+    }
+
+    admin.photo = photo.filename;
+
+    try {
+      await this.adminRepository.save(admin);
+      return admin;
+    } catch (error) {
+      console.error('Error saving updated profile:', error);
+
+      throw new ConflictException();
+    }
+  }
+
+  async getProfilePhoto(user: user_restaurant): Promise<string> {
+    try {
+      if (!user || !user.id) {
+        throw new UnauthorizedException(
+          'User information not found in the request.',
+        );
+      }
+  
+      const admin = await this.adminRepository.findOne({
+        where: { id: user.id },
+      });
+
+      if (!admin || !admin.photo) {
+        throw new NotFoundException('Profile or photo not found.');
+      }
+      return admin.photo;
+    } catch (error) {
+      console.error('Error when getting profile photo:', error);
+      throw new NotFoundException('Error when getting profile photo');
     }
   }
 
@@ -861,16 +941,6 @@ export class UserRestaurantsService {
       throw new ConflictException('Error when deleting admin from restaurant');
     }
   }
-  // async getRestaurantPhoto(user:user_restaurant): Promise<restaurantPhotos[]>{
-  //   if (!user||user.id) {
-  //     throw new UnauthorizedException()
-  //   }
-  //   try {
-  //     return
-  //   } catch (error) {
-  //     throw new NotFoundException()
-  //   }
-  // }
 
   async getReservationById(
     reservationId: string,
@@ -922,72 +992,5 @@ export class UserRestaurantsService {
     } catch (error) {
       throw new NotFoundException('Error when getting reservation.');
     }
-  }
-  // async getRestaurantPhoto(user: user_restaurant): Promise<string[]> {
-  //   try {
-  //     if (!user || !user.id) {
-  //       throw new UnauthorizedException(
-  //         'User information not found in the request.',
-  //       );
-  //     }
-
-  //     const admin = await this.adminRepository.findOne({
-  //       where: { id: user.id },
-  //       relations: ['adminRestaurant'],
-  //     });
-
-  //     if (!admin.adminRestaurant) {
-  //       throw new NotFoundException('User must have a restaurant');
-  //     }
-
-  //     const restaurant = admin.adminRestaurant;
-
-  //     if (!restaurant) {
-  //       throw new NotFoundException('Restaurant not found');
-  //     }
-
-  //     const restaurantPhotos = await this.restaurantPhotosRepository.find({
-  //       where: { restaurant: restaurant },
-  //     });
-
-  //     if (!restaurantPhotos || restaurantPhotos.length === 0) {
-  //       throw new NotFoundException('Restaurant photos not found');
-  //     }
-
-  //     const photoNames = restaurantPhotos.map((photo) => photo.photo_name);
-  //     return photoNames;
-  //   } catch (error) {
-  //     throw new NotFoundException('Error when getting restaurant photos');
-  //   }
-  // }
-
-  // async getPhoto(user: user_restaurant): Promise<restaurantPhotos[]> {
-  //   try {
-  //     if (!user || !user.id) {
-  //       throw new UnauthorizedException(
-  //         'User information not found in the request.',
-  //       );
-  //     }
-  //     console.log(user)
-
-  //     const admin = await this.adminRepository.findOne({
-  //       where: { id: user.id },
-  //       relations: ['adminRestaurant.photos'],
-  //     });
-  //     console.log(admin)
-  //     if (!admin || !admin.adminRestaurant) {
-  //       throw new NotFoundException('User or associated restaurant not found.');
-  //     }
-
-  //     const photos = admin.adminRestaurant.photos;
-
-  //     if (!photos) {
-  //       throw new NotFoundException('Photos not found.');
-  //     }
-
-  //     return photos;
-  //   } catch (error) {
-  //     throw new NotFoundException('Error when getting restaurant photos');
-  //   }
-  // }
+  }  
 }

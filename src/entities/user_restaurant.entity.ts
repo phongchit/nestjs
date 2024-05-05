@@ -22,6 +22,9 @@ export class user_restaurant {
   @Column()
   password: string;
 
+  @Column({ nullable: true })
+  photo: string;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
