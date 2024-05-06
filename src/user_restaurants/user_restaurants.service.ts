@@ -178,7 +178,7 @@ export class UserRestaurantsService {
       await this.restaurantRepository.save(restaurant);
       return restaurant;
     } catch (error) {
-      console.error('Error saving updated profile:', error);
+      console.error('Error saving updated Restaurant Photo:', error);
 
       throw new ConflictException();
     }

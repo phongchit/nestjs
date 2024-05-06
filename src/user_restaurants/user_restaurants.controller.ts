@@ -100,7 +100,7 @@ export class UserRestaurantsController {
     @Request() req: any,
     @UploadedFile(
       new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+        // validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
       }),
     )
     photo: Express.Multer.File,
@@ -128,7 +128,7 @@ export class UserRestaurantsController {
     @Request() req: any,
     @UploadedFile(
       new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+        // validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
       }),
     )
     photo: Express.Multer.File,
@@ -304,7 +304,7 @@ export class UserRestaurantsController {
     @Param('tableId') tableId: string,
     @UploadedFile(
       new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
+        // validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
       }),
     )
     photo: Express.Multer.File,
