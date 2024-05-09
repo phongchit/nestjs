@@ -18,12 +18,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import {
-  profile,
-  reservation,
-  restaurant,
-  table,
-} from 'src/entities';
+import { profile, reservation, restaurant, table } from 'src/entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -41,7 +36,11 @@ export class UsersController {
     @Param('tableId') tableId: string,
     @Request() req: any,
   ): Promise<reservation> {
-    return this.userservice.createReservation(createReservationDto, tableId,req.user,);
+    return this.userservice.createReservation(
+      createReservationDto,
+      tableId,
+      req.user,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -154,7 +153,6 @@ export class UsersController {
       throw new NotFoundException();
     }
   }
-  
 
   @UseGuards(JwtAuthGuard)
   @Delete('profile')

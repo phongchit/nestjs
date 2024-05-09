@@ -62,11 +62,11 @@ export class UsersService {
 
   async createReservation(
     createReservationDto: CreateReservationDto,
-    tableId:string,
+    tableId: string,
     user: user_clients,
   ): Promise<reservation> {
     try {
-      const {reser_time, reser_date } = createReservationDto;
+      const { reser_time, reser_date } = createReservationDto;
 
       const table = await this.findTable(tableId);
 
@@ -262,15 +262,16 @@ export class UsersService {
     }
   }
 
-  async getReservaionbyId(reservationId: string, user: user_clients): Promise<reservation>{
+  async getReservaionbyId(
+    reservationId: string,
+    user: user_clients,
+  ): Promise<reservation> {
     const reservation = await this.reservationRepository.findOne({
       where: { id: reservationId, userClient: { id: user.id } },
       relations: ['table'],
     });
     if (!reservation) {
-      throw new NotFoundException(
-        'Reservation not found',
-      );
+      throw new NotFoundException('Reservation not found');
     }
     return reservation;
   }

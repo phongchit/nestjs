@@ -7,12 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  restaurant,
-  table,
-  user_restaurant,
-  zone_table,
-} from 'src/entities';
+import { restaurant, table, user_restaurant, zone_table } from 'src/entities';
 import { Repository } from 'typeorm';
 import { CreateRestaurantDto } from './dto/create.restaurant.dto';
 import { CreateZoneDto } from './dto/create.zone.dto';
@@ -153,7 +148,6 @@ export class UserRestaurantsService {
     user: user_restaurant,
     photo: Express.Multer.File,
   ): Promise<restaurant> {
-
     if (!user || !user.id) {
       throw new UnauthorizedException(
         'User information not found in the request.',
@@ -168,7 +162,11 @@ export class UserRestaurantsService {
     const restaurant = admin.adminRestaurant;
 
     if (restaurant.photo) {
-      const photoPath = path.join(__dirname, '../../restaurants/', restaurant.photo);
+      const photoPath = path.join(
+        __dirname,
+        '../../restaurants/',
+        restaurant.photo,
+      );
       fs.unlinkSync(photoPath);
     }
 
@@ -191,7 +189,7 @@ export class UserRestaurantsService {
           'User information not found in the request.',
         );
       }
-  
+
       const admin = await this.adminRepository.findOne({
         where: { id: user.id },
         relations: ['adminRestaurant'],
@@ -206,7 +204,6 @@ export class UserRestaurantsService {
       throw new NotFoundException('Error when getting profile photo');
     }
   }
-
 
   async updateRestaurant(
     updateRestaurantDto: UpdateRestaurantDto,
@@ -346,7 +343,6 @@ export class UserRestaurantsService {
     user: user_restaurant,
     photo: Express.Multer.File,
   ): Promise<user_restaurant> {
-
     if (!user || !user.id) {
       throw new UnauthorizedException(
         'User information not found in the request.',
@@ -381,7 +377,7 @@ export class UserRestaurantsService {
           'User information not found in the request.',
         );
       }
-  
+
       const admin = await this.adminRepository.findOne({
         where: { id: user.id },
       });
@@ -992,5 +988,5 @@ export class UserRestaurantsService {
     } catch (error) {
       throw new NotFoundException('Error when getting reservation.');
     }
-  }  
+  }
 }

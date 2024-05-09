@@ -60,9 +60,13 @@ export class UserRestaurantsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('photo')
-  async getRestaurantPhoto(@Request() req: any, @Res() res: any): Promise<void> {
+  async getRestaurantPhoto(
+    @Request() req: any,
+    @Res() res: any,
+  ): Promise<void> {
     try {
-      const photoFileName = await this.userRestaurantsService.getRestaurantPhoto(req.user);
+      const photoFileName =
+        await this.userRestaurantsService.getRestaurantPhoto(req.user);
       res.sendFile(path.join(__dirname, '../../restaurants/', photoFileName));
     } catch (error) {
       throw new NotFoundException();
@@ -73,7 +77,9 @@ export class UserRestaurantsController {
   @Get('profile/photo')
   async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
     try {
-      const photoFileName = await this.userRestaurantsService.getProfilePhoto(req.user);
+      const photoFileName = await this.userRestaurantsService.getProfilePhoto(
+        req.user,
+      );
       res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
     } catch (error) {
       throw new NotFoundException();
@@ -135,63 +141,7 @@ export class UserRestaurantsController {
   ): Promise<user_restaurant> {
     return this.userRestaurantsService.updateprofilephoto(req.user, photo);
   }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Patch('upload/photo')
-  // @UseInterceptors(
-  //   FileInterceptor('photo', {
-  //     storage: diskStorage({
-  //       destination: './restaurants',
-  //       filename(req, file, callback) {
-  //         const uniqueSuffix =
-  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
-  //         const extension = extname(file.originalname);
-  //         const filename = `${uniqueSuffix}${extension}`;
-  //         callback(null, filename);
-  //       },
-  //     }),
-  //   }),
-  // )
-  // async uploadRestaurantPhoto(
-  //   @UploadedFiles(
-  //     new ParseFilePipe({
-  //       validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
-  //     }),
-  //   )
-  //   photo: Express.Multer.File,
-  //   @Request() req,
-  // ): Promise<restaurant> {
-  //   return this.userRestaurantsService.uploadPhotos(req.user, photo);
-  // }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Patch('upload/photo')
-  // @UseInterceptors(
-  //   FileInterceptor('photo', {
-  //     storage: diskStorage({
-  //       destination: './restaurants',
-  //       filename(req, file, callback) {
-  //         const uniqueSuffix =
-  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
-  //         const extension = extname(file.originalname);
-  //         const filename = `${uniqueSuffix}${extension}`;
-  //         callback(null, filename);
-  //       },
-  //     }),
-  //   }),
-  // )
-  // async uploadRestaurantPhoto(
-  //   @Request() req: any,
-  //   @UploadedFile(
-  //     new ParseFilePipe({
-  //       validators: [new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' })],
-  //     }),
-  //   )
-  //   photo: Express.Multer.File,
-  // ): Promise<restaurantPhotos> {
-  //      return this.userRestaurantsService.uploadRestaurantPhoto(req.user, photo);
-  // }
-
+  
   @UseGuards(JwtAuthGuard)
   @Get()
   async getRestaurant(@Request() req: any): Promise<restaurant> {
@@ -324,7 +274,10 @@ export class UserRestaurantsController {
     @Res() res: any,
   ): Promise<void> {
     try {
-      const photoFileName = await this.userRestaurantsService.getTablePhoto(req.user.id,tableId,);
+      const photoFileName = await this.userRestaurantsService.getTablePhoto(
+        req.user.id,
+        tableId,
+      );
       res.sendFile(path.join(__dirname, '../../tables/' + photoFileName));
     } catch (error) {
       throw new NotFoundException();
@@ -408,32 +361,4 @@ export class UserRestaurantsController {
       req.user,
     );
   }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('restaurant/photo')
-  // async getRestaurantPhoto(
-  //   @Request() req: any,
-  //   @Res() res: any,
-  // ): Promise<void> {
-  //   const photos = await this.userRestaurantsService.getPhoto(req.user);
-  //   const photoFileName = photos[0].photo_name;
-  //   res.sendFile(path.join(__dirname, '../../restaurants/' + photoFileName));
-  // }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('photo')
-  // async getRestaurantPhoto(
-  //   @Request() req: any,
-  //   @Res() res: any,
-  // ): Promise<void> {
-  //   try {
-  //     const photos = await this.userRestaurantsService.getRestaurantPhoto(
-  //       req.user.id,
-  //     );
-  //     const photoFileName = photos
-  //     res.sendFile(path.join(__dirname, '../../restaurants/' + photoFileName));
-  //   } catch (error) {
-  //     throw new NotFoundException();
-  //   }
-  // }
 }
