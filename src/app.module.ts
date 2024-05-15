@@ -31,6 +31,7 @@ import { TableModule } from './table/table.module';
     UsersModule,
     UserRestaurantsModule,
     TableModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
