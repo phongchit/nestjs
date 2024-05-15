@@ -108,7 +108,6 @@ export class UsersService {
         reser_date,
       });
 
-      console.log(newReservation);
       await Promise.all([
         this.reservationRepository.save(newReservation),
         this.updateTableStatus(tableId, reser_date),
@@ -234,7 +233,6 @@ export class UsersService {
       // Extract and return tables from the found zone
       return zone.tables;
     } catch (error) {
-      console.error('Error when getting tables by zone ID:', error);
       throw new NotFoundException('Error when getting tables by zone ID');
     }
   }
@@ -257,7 +255,6 @@ export class UsersService {
 
       return userReservations;
     } catch (error) {
-      console.error('Error when getting user reservations:', error);
       throw new NotFoundException('Error when getting user reservations');
     }
   }
@@ -354,8 +351,6 @@ export class UsersService {
       await this.profileRepository.save(Profile);
       return Profile;
     } catch (error) {
-      console.error('Error saving updated profile:', error);
-
       throw new ConflictException();
     }
   }
@@ -399,13 +394,8 @@ export class UsersService {
       const profile = await this.profileRepository.findOne({
         where: { user: { id: user.id } },
       });
-
-      if (!profile || !profile.photo) {
-        throw new NotFoundException('Profile or photo not found.');
-      }
       return profile.photo;
     } catch (error) {
-      console.error('Error when getting profile photo:', error);
       throw new NotFoundException('Error when getting profile photo');
     }
   }

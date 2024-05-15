@@ -21,9 +21,7 @@ export class AuthService {
   ) {}
 
   async signupUser(signupDto: SignUpUserDto): Promise<user_clients> {
-    let { email, username, password } = signupDto;
-    email = email.toLowerCase();
-    username = username.toLowerCase();
+    const { email, username } = signupDto;
     const existingUser = await this.userRepository.findOne({
       where: [{ username }, { email }],
     });
@@ -31,20 +29,18 @@ export class AuthService {
       throw new ConflictException('Username or email already exists');
     }
     const salt = bcrypt.genSaltSync(10);
-    const hashedpass = await bcrypt.hashSync(password, salt);
+    const hashedpass = await bcrypt.hashSync(signupDto.password, salt);
 
     const newUser = this.userRepository.create({
-      email,
-      username,
+      email: email.toLowerCase(),
+      username: username.toLowerCase(),
       password: hashedpass,
     });
     return this.userRepository.save(newUser);
   }
 
   async signupRestaurant(signupDto: SignUpUserDto): Promise<user_restaurant> {
-    let { email, username, password } = signupDto;
-    email = email.toLowerCase();
-    username = username.toLowerCase();
+    const { email, username } = signupDto;
     const existingUser = await this.adminRepository.findOne({
       where: [{ username }, { email }],
     });
@@ -52,11 +48,11 @@ export class AuthService {
       throw new ConflictException('Username or email already exists');
     }
     const salt = bcrypt.genSaltSync(10);
-    const hashedpass = await bcrypt.hashSync(password, salt);
+    const hashedpass = await bcrypt.hashSync(signupDto.password, salt);
 
     const newUser = this.adminRepository.create({
-      email,
-      username,
+      email: email.toLowerCase(),
+      username: username.toLowerCase(),
       password: hashedpass,
     });
     return this.adminRepository.save(newUser);

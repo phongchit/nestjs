@@ -13,7 +13,6 @@ import {
   UseInterceptors,
   Res,
   ParseFilePipe,
-  FileTypeValidator,
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -25,6 +24,7 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { createProfileDto } from './dto/create.profile.dto';
 import { extname } from 'path';
+import { updateProfileDto } from './dto/update.profile.dto';
 @Controller('users')
 export class UsersController {
   constructor(private userservice: UsersService) {}
@@ -137,7 +137,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   async updateProfile(
-    @Body() updateProfileDto: createProfileDto,
+    @Body() updateProfileDto: updateProfileDto,
     @Request() req: any,
   ): Promise<profile> {
     return this.userservice.updateProfile(updateProfileDto, req.user);
@@ -148,7 +148,13 @@ export class UsersController {
   async getProfilePhoto(@Request() req: any, @Res() res: any): Promise<void> {
     try {
       const photoFileName = await this.userservice.getProfilePhoto(req.user);
-      res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
+      if (photoFileName) {
+        res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
+      } else {
+        res.sendFile(
+          path.join(__dirname, '../../profile/silhouette-person-icon.png'),
+        );
+      }
     } catch (error) {
       throw new NotFoundException();
     }

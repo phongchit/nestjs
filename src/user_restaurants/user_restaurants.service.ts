@@ -50,7 +50,6 @@ export class UserRestaurantsService {
 
   async getprofile(user: user_restaurant): Promise<user_restaurant> {
     try {
-      console.log(user);
       if (!user || !user.id) {
         throw new UnauthorizedException();
       }
@@ -65,10 +64,9 @@ export class UserRestaurantsService {
         delete admin.updatedAt;
         delete admin.id;
       }
-      console.log(admin);
       return admin;
     } catch (error) {
-      console.log(error);
+      throw new ConflictException();
     }
   }
 
@@ -111,7 +109,6 @@ export class UserRestaurantsService {
       await this.adminRepository.save(user);
       return createdRestaurant;
     } catch (error) {
-      console.error('Error when creating restaurant:', error);
       throw new ConflictException('Error when creating restaurant');
     }
   }
@@ -176,8 +173,6 @@ export class UserRestaurantsService {
       await this.restaurantRepository.save(restaurant);
       return restaurant;
     } catch (error) {
-      console.error('Error saving updated Restaurant Photo:', error);
-
       throw new ConflictException();
     }
   }
@@ -194,13 +189,8 @@ export class UserRestaurantsService {
         where: { id: user.id },
         relations: ['adminRestaurant'],
       });
-
-      if (!admin || !admin.adminRestaurant.photo) {
-        throw new NotFoundException('Profile or photo not found.');
-      }
       return admin.adminRestaurant.photo;
     } catch (error) {
-      console.error('Error when getting profile photo:', error);
       throw new NotFoundException('Error when getting profile photo');
     }
   }
@@ -259,7 +249,6 @@ export class UserRestaurantsService {
       await this.restaurantRepository.save(restaurant);
       return restaurant;
     } catch (error) {
-      console.error('Error when updating restaurant:', error);
       throw new ConflictException('Error when updating restaurant');
     }
   }
@@ -294,7 +283,6 @@ export class UserRestaurantsService {
       // Delete the restaurant
       await this.restaurantRepository.remove(deleteRestaurant);
     } catch (error) {
-      console.error('Error when deleting restaurant:', error);
       throw new ConflictException('Error when deleting restaurant');
     }
   }
@@ -364,8 +352,6 @@ export class UserRestaurantsService {
       await this.adminRepository.save(admin);
       return admin;
     } catch (error) {
-      console.error('Error saving updated profile:', error);
-
       throw new ConflictException();
     }
   }
@@ -381,13 +367,8 @@ export class UserRestaurantsService {
       const admin = await this.adminRepository.findOne({
         where: { id: user.id },
       });
-
-      if (!admin || !admin.photo) {
-        throw new NotFoundException('Profile or photo not found.');
-      }
       return admin.photo;
     } catch (error) {
-      console.error('Error when getting profile photo:', error);
       throw new NotFoundException('Error when getting profile photo');
     }
   }
@@ -442,7 +423,6 @@ export class UserRestaurantsService {
 
       return zones;
     } catch (error) {
-      console.error('Error when getting zones for admin:', error);
       throw new UnauthorizedException('Error when getting zones for admin');
     }
   }
@@ -476,7 +456,6 @@ export class UserRestaurantsService {
 
       await this.zoneRepository.remove(existingZone);
     } catch (error) {
-      console.error('Error when deleting zone:', error);
       throw new ConflictException('Error when deleting zone');
     }
   }
@@ -522,7 +501,6 @@ export class UserRestaurantsService {
 
       return await this.tableRepository.save(newTable);
     } catch (error) {
-      console.error('Error when creating table:', error);
       throw new ConflictException('Error when creating table');
     }
   }
@@ -555,8 +533,6 @@ export class UserRestaurantsService {
       await this.tableRepository.save(table);
       return table;
     } catch (error) {
-      console.error('Error saving upload table photo:', error);
-
       throw new ConflictException();
     }
   }
@@ -573,7 +549,6 @@ export class UserRestaurantsService {
 
       return table.photo;
     } catch (error) {
-      console.error('Error when getting table photo:', error);
       throw new NotFoundException('Error when getting table photo');
     }
   }
@@ -608,7 +583,6 @@ export class UserRestaurantsService {
 
       return zones.tables || [];
     } catch (error) {
-      console.error('Error when getting tables for zone:', error);
       throw new NotFoundException('Error when getting tables for zone');
     }
   }
@@ -642,7 +616,6 @@ export class UserRestaurantsService {
 
       await this.tableRepository.remove(table);
     } catch (error) {
-      console.error('Error when deleting table:', error);
       throw new ConflictException('Error when deleting table');
     }
   }
@@ -675,7 +648,6 @@ export class UserRestaurantsService {
 
       return table;
     } catch (error) {
-      console.error('Error when getting table by tableId:', error);
       throw new NotFoundException('Error when getting table by tableId');
     }
   }
@@ -720,7 +692,6 @@ export class UserRestaurantsService {
 
       return await this.tableRepository.save(table);
     } catch (error) {
-      console.error('Error when updating table:', error);
       throw new ConflictException('Error when updating table');
     }
   }
@@ -767,7 +738,6 @@ export class UserRestaurantsService {
 
       return userToAdd;
     } catch (error) {
-      console.error('Error when adding admin to restaurant:', error);
       throw new ConflictException('Error when adding admin to restaurant');
     }
   }
@@ -822,7 +792,6 @@ export class UserRestaurantsService {
       }
       return reservation || [];
     } catch (error) {
-      console.error('Error when canceling reservation for restaurant:', error);
       throw new NotFoundException(
         'Error when canceling reservation for restaurant',
       );
@@ -888,7 +857,6 @@ export class UserRestaurantsService {
 
       return reservations;
     } catch (error) {
-      console.error('Error when getting reservations for restaurant:', error);
       throw new NotFoundException(
         'Error when getting reservations for restaurant',
       );
@@ -933,7 +901,6 @@ export class UserRestaurantsService {
       await this.adminRepository.save(adminToDelete);
       return { message: 'Admin deleted successfully.' };
     } catch (error) {
-      console.error('Error when deleting admin from restaurant:', error);
       throw new ConflictException('Error when deleting admin from restaurant');
     }
   }

@@ -10,7 +10,6 @@ import {
   Query,
   UseInterceptors,
   ParseFilePipe,
-  FileTypeValidator,
   Res,
   UploadedFile,
   NotFoundException,
@@ -67,7 +66,11 @@ export class UserRestaurantsController {
     try {
       const photoFileName =
         await this.userRestaurantsService.getRestaurantPhoto(req.user);
-      res.sendFile(path.join(__dirname, '../../restaurants/', photoFileName));
+      if (photoFileName) {
+        res.sendFile(path.join(__dirname, '../../restaurants/', photoFileName));
+      } else {
+        res.sendFile(path.join(__dirname, '../../restaurants/pub.png'));
+      }
     } catch (error) {
       throw new NotFoundException();
     }
@@ -80,7 +83,13 @@ export class UserRestaurantsController {
       const photoFileName = await this.userRestaurantsService.getProfilePhoto(
         req.user,
       );
-      res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
+      if (photoFileName) {
+        res.sendFile(path.join(__dirname, '../../profile/', photoFileName));
+      } else {
+        res.sendFile(
+          path.join(__dirname, '../../profile/silhouette-person-icon.png'),
+        );
+      }
     } catch (error) {
       throw new NotFoundException();
     }
@@ -141,7 +150,7 @@ export class UserRestaurantsController {
   ): Promise<user_restaurant> {
     return this.userRestaurantsService.updateprofilephoto(req.user, photo);
   }
-  
+
   @UseGuards(JwtAuthGuard)
   @Get()
   async getRestaurant(@Request() req: any): Promise<restaurant> {
