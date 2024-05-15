@@ -16,8 +16,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import { profile, reservation, restaurant, table } from 'src/entities';
+// import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
+import { JwtAuthGuard } from '../auth/jwt/jwt.guard';
+
+// import { profile, reservation, restaurant, table } from 'src/entities';
+import { profile, reservation, restaurant, table } from '../entities';
 import { CreateReservationDto } from './dto/craate.reservation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';

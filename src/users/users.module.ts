@@ -8,7 +8,7 @@ import {
   table,
   user_clients,
   zone_table,
-} from 'src/entities';
+} from '../entities';
 import { UsersController } from './users.controller';
 
 @Module({
